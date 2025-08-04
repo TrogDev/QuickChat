@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
@@ -25,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API", "src\services\Identity\src\Identity.API\Identity.API.csproj", "{AC3AE1EA-0642-F4CB-04FA-5F84D84DE9F4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Application", "src\services\Identity\src\Identity.Application\Identity.Application.csproj", "{8922D66B-47CD-7A5A-F3FD-565B45356EB2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.UnitTests", "src\services\Identity\tests\Identity.UnitTests\Identity.UnitTests.csproj", "{11C71BF6-3FD9-46DB-A34E-949E5DB93F14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +63,10 @@ Global
 		{8922D66B-47CD-7A5A-F3FD-565B45356EB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8922D66B-47CD-7A5A-F3FD-565B45356EB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8922D66B-47CD-7A5A-F3FD-565B45356EB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11C71BF6-3FD9-46DB-A34E-949E5DB93F14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11C71BF6-3FD9-46DB-A34E-949E5DB93F14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11C71BF6-3FD9-46DB-A34E-949E5DB93F14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11C71BF6-3FD9-46DB-A34E-949E5DB93F14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +83,7 @@ Global
 		{90DDEA48-CD87-C0F4-D2BA-306E3A68C29C} = {294FD18F-2F4B-7647-2A83-2763F0D33F88}
 		{AC3AE1EA-0642-F4CB-04FA-5F84D84DE9F4} = {294FD18F-2F4B-7647-2A83-2763F0D33F88}
 		{8922D66B-47CD-7A5A-F3FD-565B45356EB2} = {294FD18F-2F4B-7647-2A83-2763F0D33F88}
+		{11C71BF6-3FD9-46DB-A34E-949E5DB93F14} = {1BFC9479-12BF-35C3-06B8-42D89D95092B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6EB56EFB-F9BA-441B-A70C-F8E8088728DD}
