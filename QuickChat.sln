@@ -12,7 +12,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventBusRabbitMQ", "src\sha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "src\shared\Logging\Logging.csproj", "{31E8307C-320F-AD74-6CE9-68406B3B1D49}"
 EndProject
-
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{984BB9B3-3FA3-BE33-9484-CAC21695A33C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{1BFC9479-12BF-35C3-06B8-42D89D95092B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{294FD18F-2F4B-7647-2A83-2763F0D33F88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Domain", "src\services\Identity\src\Identity.Domain\Identity.Domain.csproj", "{816496EE-2B8F-97F5-47BA-3ED81240E584}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Infrastructure", "src\services\Identity\src\Identity.Infrastructure\Identity.Infrastructure.csproj", "{90DDEA48-CD87-C0F4-D2BA-306E3A68C29C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API", "src\services\Identity\src\Identity.API\Identity.API.csproj", "{AC3AE1EA-0642-F4CB-04FA-5F84D84DE9F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Application", "src\services\Identity\src\Identity.Application\Identity.Application.csproj", "{8922D66B-47CD-7A5A-F3FD-565B45356EB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

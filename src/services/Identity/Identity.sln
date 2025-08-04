@@ -1,0 +1,56 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Domain", "src\Identity.Domain\Identity.Domain.csproj", "{D6AA8B29-E354-04AF-6541-8DF97E8B436C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Infrastructure", "src\Identity.Infrastructure\Identity.Infrastructure.csproj", "{C3905218-1E6B-7B4C-4AD3-C3D27E289FCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API", "src\Identity.API\Identity.API.csproj", "{69903447-5DF6-22E7-90A7-81BEAEF72338}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Application", "src\Identity.Application\Identity.Application.csproj", "{905F92EA-12D7-44B9-C51B-2C695A2F087C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventBusRabbitMQ", "..\..\shared\EventBusRabbitMQ\EventBusRabbitMQ.csproj", "{DC574D5C-D0D3-4C6A-8BB9-2D3EBE503A84}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D6AA8B29-E354-04AF-6541-8DF97E8B436C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6AA8B29-E354-04AF-6541-8DF97E8B436C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6AA8B29-E354-04AF-6541-8DF97E8B436C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6AA8B29-E354-04AF-6541-8DF97E8B436C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3905218-1E6B-7B4C-4AD3-C3D27E289FCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3905218-1E6B-7B4C-4AD3-C3D27E289FCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3905218-1E6B-7B4C-4AD3-C3D27E289FCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3905218-1E6B-7B4C-4AD3-C3D27E289FCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69903447-5DF6-22E7-90A7-81BEAEF72338}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69903447-5DF6-22E7-90A7-81BEAEF72338}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69903447-5DF6-22E7-90A7-81BEAEF72338}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69903447-5DF6-22E7-90A7-81BEAEF72338}.Release|Any CPU.Build.0 = Release|Any CPU
+		{905F92EA-12D7-44B9-C51B-2C695A2F087C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{905F92EA-12D7-44B9-C51B-2C695A2F087C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{905F92EA-12D7-44B9-C51B-2C695A2F087C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{905F92EA-12D7-44B9-C51B-2C695A2F087C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC574D5C-D0D3-4C6A-8BB9-2D3EBE503A84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC574D5C-D0D3-4C6A-8BB9-2D3EBE503A84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC574D5C-D0D3-4C6A-8BB9-2D3EBE503A84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC574D5C-D0D3-4C6A-8BB9-2D3EBE503A84}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D6AA8B29-E354-04AF-6541-8DF97E8B436C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{C3905218-1E6B-7B4C-4AD3-C3D27E289FCB} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{69903447-5DF6-22E7-90A7-81BEAEF72338} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{905F92EA-12D7-44B9-C51B-2C695A2F087C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EB0C1A89-93C5-4BF0-B8C0-C4563D852CB2}
+	EndGlobalSection
+EndGlobal
