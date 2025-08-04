@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>QuickChat.Attachment.API</RootNamespace>
+    <AssemblyName>QuickChat.Attachment.API</AssemblyName>
+    <PublishAot Condition="'$(EnableAotPublishing)' == 'true'">true</PublishAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Attachment.Infrastructure\Attachment.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\shared\EFHelper\EFHelper.csproj" />
+  </ItemGroup>
+
+</Project>

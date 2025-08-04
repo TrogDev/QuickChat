@@ -25,7 +25,7 @@ public static class RabbitMqDependencyInjectionExtensions
             connectionName,
             configureConnectionFactory: factory =>
             {
-                ((ConnectionFactory)factory).DispatchConsumersAsync = true;
+                factory.DispatchConsumersAsync = true;
             }
         );
 
