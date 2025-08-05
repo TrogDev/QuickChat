@@ -20,11 +20,11 @@ public static class AttachmentApi
     }
 
     public static async Task<IResult> GetBulk(
-        [FromQuery] string[] ids,
+        [FromQuery] Guid[] ids,
         [FromServices] ISender mediator
     )
     {
-        GetAttachmentsByIdQuery query = new(ids.Select(e => new Guid(e)));
+        GetAttachmentsByIdQuery query = new(ids);
         return Results.Ok(await mediator.Send(query));
     }
 
