@@ -31,7 +31,8 @@ public class JwtTokenServiceTests
             {
                 Issuer = issuer,
                 Audience = audience,
-                PrivateKey = privateKey
+                PrivateKey = privateKey,
+                AccessLifeTimeDays = 1
             }
         );
         IOptions<JwtOptions> options2 = Options.Create(
@@ -39,7 +40,8 @@ public class JwtTokenServiceTests
             {
                 Issuer = issuer,
                 Audience = audience,
-                PrivateKey = privateKey2
+                PrivateKey = privateKey2,
+                AccessLifeTimeDays = 1
             }
         );
         IHasher hasher = new Sha256Hasher();

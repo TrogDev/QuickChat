@@ -40,6 +40,7 @@ public class JwtTokenService : IJwtTokenService
                 issuer: options.Issuer,
                 audience: options.Audience,
                 claims: claims,
+                expires: DateTime.UtcNow.AddDays(options.AccessLifeTimeDays),
                 signingCredentials: credentials
             );
         return new JwtSecurityTokenHandler().WriteToken(token);
