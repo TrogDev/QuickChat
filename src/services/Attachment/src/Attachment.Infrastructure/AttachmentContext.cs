@@ -9,10 +9,4 @@ public class AttachmentContext : DbContext, IUnitOfWork
 
     public AttachmentContext(DbContextOptions<AttachmentContext> options)
         : base(options) { }
-
-    public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
-    {
-        await base.SaveChangesAsync(cancellationToken);
-        return true;
-    }
 }

@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Attachment.Infrastructure\Attachment.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\..\shared\EFHelper\EFHelper.csproj" />
+    <ProjectReference Include="..\..\..\..\shared\Authentication\Authentication.csproj" />
   </ItemGroup>
 
 </Project>
