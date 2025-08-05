@@ -16,10 +16,7 @@ public class AttachmentTypeValidator : IAttachmentTypeValidator
         if (string.IsNullOrWhiteSpace(fileName))
             throw new InvalidAttachmentTypeException();
 
-        string? extension = Path.GetExtension(fileName)?.ToLowerInvariant();
-
-        if (string.IsNullOrEmpty(extension))
-            throw new InvalidAttachmentTypeException();
+        string extension = Path.GetExtension(fileName)?.ToLowerInvariant() ?? "";
 
         bool isValid = type switch
         {
