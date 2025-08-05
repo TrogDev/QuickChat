@@ -11,9 +11,7 @@ public static class AttachmentApi
 {
     public static RouteGroupBuilder MapAttachmentApiV1(this IEndpointRouteBuilder app)
     {
-        RouteGroupBuilder api = app.MapGroup("/attachments/")
-            .RequireAuthorization()
-            .HasApiVersion(1.0);
+        RouteGroupBuilder api = app.MapGroup("/attachments/").HasApiVersion(1.0);
 
         api.MapGet("", GetBulk);
         api.MapPost("", Upload).DisableAntiforgery();
