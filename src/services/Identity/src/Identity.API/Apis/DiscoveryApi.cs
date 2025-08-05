@@ -11,6 +11,7 @@ public static class DiscoveryApi
     {
         RouteGroupBuilder api = app.MapGroup("/.well-known");
         api.MapGet("jwks", GetJwksData);
+        api.MapGet("openid-configuration", GetOpenIdConfiguration);
         return api;
     }
 
@@ -23,10 +24,21 @@ public static class DiscoveryApi
             kty = "RSA",
             use = "sig",
             alg = "RS256",
-            kid = rsaKey.KeyId ?? Guid.NewGuid().ToString(),
+            kid = rsaKey.KeyId,
             n = Base64UrlEncoder.Encode(rsaParams.Modulus),
             e = Base64UrlEncoder.Encode(rsaParams.Exponent)
         };
         return Results.Ok(new { keys = new[] { jwk } });
+    }
+
+    public static IResult GetOpenIdConfiguration()
+    {
+        var config = new
+        {
+            jwks_uri = "http://localhost:5224/.well-known/jwks",
+            id_token_signing_alg_values_supported = new[] { "RS256" },
+        };
+
+        return Results.Ok(config);
     }
 }
