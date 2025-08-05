@@ -7,16 +7,10 @@ using QuickChat.Identity.Application.Services;
 
 namespace QuickChat.Identity.Infrastructure.Services;
 
-public class JwtTokenService : IJwtTokenService
+public class JwtTokenService(IOptions<JwtOptions> options, IHasher hasher) : IJwtTokenService
 {
-    private readonly JwtOptions options;
-    private readonly IHasher hasher;
-
-    public JwtTokenService(IOptions<JwtOptions> options, IHasher hasher)
-    {
-        this.options = options.Value;
-        this.hasher = hasher;
-    }
+    private readonly JwtOptions options = options.Value;
+    private readonly IHasher hasher = hasher;
 
     public string CreateAccessToken(Guid userId)
     {

@@ -20,6 +20,8 @@ public sealed class RabbitMQEventBus(
 {
     private const string ExchangeName = "quickchat_event_bus";
 
+    private readonly ILogger<RabbitMQEventBus> logger = logger;
+    private readonly IServiceProvider serviceProvider = serviceProvider;
     private readonly ResiliencePipeline _pipeline = CreateResiliencePipeline(
         options.Value.RetryCount
     );

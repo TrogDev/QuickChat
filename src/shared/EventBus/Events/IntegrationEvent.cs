@@ -1,16 +1,10 @@
 ﻿namespace QuickChat.EventBus.Events;
 
-public record IntegrationEvent
+public record IntegrationEvent()
 {
-    public IntegrationEvent()
-    {
-        Id = Guid.NewGuid();
-        CreationDate = DateTime.UtcNow;
-    }
+    [JsonInclude]
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     [JsonInclude]
-    public Guid Id { get; set; }
-
-    [JsonInclude]
-    public DateTime CreationDate { get; set; }
+    public DateTime CreationDate { get; set; } = DateTime.UtcNow;
 }

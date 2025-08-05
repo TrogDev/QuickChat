@@ -14,6 +14,11 @@ public class UploadAttachmentCommandHandler(
     ILogger<UploadAttachmentCommandHandler> logger
 ) : IRequestHandler<UploadAttachmentCommand, Domain.Entities.Attachment>
 {
+    private readonly IFileUploader fileUploader = fileUploader;
+    private readonly IAttachmentRepository repository = repository;
+    private readonly IAttachmentTypeValidator validator = validator;
+    private readonly ILogger<UploadAttachmentCommandHandler> logger = logger;
+
     public async Task<Domain.Entities.Attachment> Handle(
         UploadAttachmentCommand request,
         CancellationToken cancellationToken

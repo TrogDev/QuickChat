@@ -9,6 +9,9 @@ internal class MigrationHostedService<TContext>(
 ) : BackgroundService
     where TContext : DbContext
 {
+    private readonly IServiceProvider serviceProvider = serviceProvider;
+    private readonly Func<TContext, IServiceProvider, Task> seeder = seeder;
+
     public override Task StartAsync(CancellationToken cancellationToken)
     {
         return serviceProvider.MigrateDbContextAsync(seeder);
