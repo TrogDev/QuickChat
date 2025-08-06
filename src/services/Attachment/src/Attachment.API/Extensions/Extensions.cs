@@ -1,10 +1,10 @@
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
+using QuickChat.Attachment.Application.Behaviors;
 using QuickChat.Attachment.Application.Commands;
 using QuickChat.Attachment.Application.Repositories;
 using QuickChat.Attachment.Application.Services;
 using QuickChat.Attachment.Infrastructure;
-using QuickChat.Attachment.Infrastructure.Behaviors;
 using QuickChat.Attachment.Infrastructure.Repositories;
 using QuickChat.Attachment.Infrastructure.Services;
 using QuickChat.EFHelper;

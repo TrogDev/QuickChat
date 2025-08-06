@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Attachment.Domain/Attachment.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\shared\EventBus\EventBus.csproj" />
   </ItemGroup>
   
 </Project>
