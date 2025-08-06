@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+      <RootNamespace>QuickChat.Chat.API</RootNamespace>
+    <AssemblyName>QuickChat.Chat.API</AssemblyName>
+    <PublishAot Condition="'$(EnableAotPublishing)' == 'true'">true</PublishAot>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\chat.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Chat.Infrastructure\Chat.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\shared\EFHelper\EFHelper.csproj" />
+  </ItemGroup>
+</Project>

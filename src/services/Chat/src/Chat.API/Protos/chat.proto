@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option csharp_namespace = "QuickChat.Chat.API.Grpc";
+
+import "google/protobuf/empty.proto";
+
+package ChatApi;
+
+service Chat {
+    rpc GetUserChats(GetUserChatsRequest) returns (GetUserChatsReply) {}
+    rpc GetChatByCode(GetChatByCodeRequest) returns (GetChatByCodeReply) {}
+    rpc JoinChat(JoinChatRequest) returns (google.protobuf.Empty) {}
+    rpc CreateChat(CreateChatRequest) returns (CreateChatReply) {}
+}
+
+message GetUserChatsRequest {
+    string user_id = 1;
+}
+
+message GetUserChatsReply {
+    repeated ChatMessage chats = 1;
+}
+
+message GetChatByCodeRequest {
+    string code = 1;
+}
+
+message GetChatByCodeReply {
+    ChatMessage chat = 1;
+}
+
+message JoinChatRequest {
+    string code = 1;
+    string user_id = 2;
+    string name = 3;
+}
+
+message CreateChatRequest {
+    string name = 1;
+}
+
+message CreateChatReply {
+    ChatMessage chat = 1;
+}
+
+message ChatMessage {
+    string id = 1;
+    string code = 2;
+    string name = 3;
+    repeated ChatParticipantMessage participants = 4;
+}
+
+message ChatParticipantMessage {
+    string id = 1;
+    string user_id = 2;
+    string name = 3;
+}
