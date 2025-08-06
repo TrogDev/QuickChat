@@ -2,7 +2,7 @@ using QuickChat.Attachment.Application.Exceptions;
 using QuickChat.Attachment.Application.Services;
 using QuickChat.Attachment.Domain.Enums;
 
-namespace QuickChat.Identity.UnitTests.Application;
+namespace QuickChat.Attachment.UnitTests.Application;
 
 public class AttachmentTypeValidatorTests
 {
