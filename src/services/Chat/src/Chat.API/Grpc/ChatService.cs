@@ -98,7 +98,9 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         catch (FormatException e)
         {
             logger.LogError(e, "Invalid {Field} format", fieldName);
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid UserId format"));
+            throw new RpcException(
+                new Status(StatusCode.InvalidArgument, $"Invalid {fieldName} format")
+            );
         }
     }
 }
