@@ -1,0 +1,10 @@
+using MediatR;
+
+namespace QuickChat.Message.Application.Commands;
+
+public record EditMessageCommand(
+    long Id,
+    string Text,
+    IEnumerable<Guid> AttachmentIds,
+    Guid? ActorId = null
+) : IRequest;

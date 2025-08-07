@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>QuickChat.Message.Application</RootNamespace>
+    <AssemblyName>QuickChat.Message.Application</AssemblyName>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Message.Domain\Message.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\shared\EventBus\EventBus.csproj" />
+  </ItemGroup>
+  
+</Project>
