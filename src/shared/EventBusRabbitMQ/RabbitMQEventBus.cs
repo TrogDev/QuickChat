@@ -35,7 +35,7 @@ public sealed class RabbitMQEventBus(
 
     public Task PublishAsync(IntegrationEvent @event)
     {
-        var routingKey = @event.GetType().Name;
+        string routingKey = @event.GetType().Name;
 
         if (logger.IsEnabled(LogLevel.Trace))
         {
@@ -46,7 +46,7 @@ public sealed class RabbitMQEventBus(
             );
         }
 
-        using var channel =
+        using IModel channel =
             rabbitMQConnection?.CreateModel()
             ?? throw new InvalidOperationException("RabbitMQ connection is not open");
 
@@ -57,15 +57,18 @@ public sealed class RabbitMQEventBus(
 
         channel.ExchangeDeclare(exchange: ExchangeName, type: "direct");
 
-        var body = SerializeMessage(@event);
+        byte[] body = SerializeMessage(@event);
 
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md
-        var activityName = $"{routingKey} publish";
+        string activityName = $"{routingKey} publish";
 
         return _pipeline.Execute(() =>
         {
-            using var activity = activitySource.StartActivity(activityName, ActivityKind.Client);
+            using Activity activity = activitySource.StartActivity(
+                activityName,
+                ActivityKind.Client
+            );
 
             // Depending on Sampling (and whether a listener is registered or not), the activity above may not be created.
             // If it is created, then propagate its context. If it is not created, the propagate the Current context, if any.
@@ -81,7 +84,7 @@ public sealed class RabbitMQEventBus(
                 contextToInject = Activity.Current.Context;
             }
 
-            var properties = channel.CreateBasicProperties();
+            IBasicProperties properties = channel.CreateBasicProperties();
             // persistent
             properties.DeliveryMode = 2;
 
@@ -154,16 +157,16 @@ public sealed class RabbitMQEventBus(
             string key
         )
         {
-            if (props.Headers.TryGetValue(key, out var value))
+            if (props.Headers.TryGetValue(key, out object value))
             {
-                var bytes = value as byte[];
+                byte[] bytes = value as byte[];
                 return [Encoding.UTF8.GetString(bytes)];
             }
             return [];
         }
 
         // Extract the PropagationContext of the upstream parent from the message headers.
-        var parentContext = propagator.Extract(
+        PropagationContext parentContext = propagator.Extract(
             default,
             eventArgs.BasicProperties,
             ExtractTraceContextFromBasicProperties
@@ -172,9 +175,9 @@ public sealed class RabbitMQEventBus(
 
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md
-        var activityName = $"{eventArgs.RoutingKey} receive";
+        string activityName = $"{eventArgs.RoutingKey} receive";
 
-        using var activity = activitySource.StartActivity(
+        using Activity activity = activitySource.StartActivity(
             activityName,
             ActivityKind.Client,
             parentContext.ActivityContext
@@ -182,8 +185,8 @@ public sealed class RabbitMQEventBus(
 
         SetActivityContext(activity, eventArgs.RoutingKey, "receive");
 
-        var eventName = eventArgs.RoutingKey;
-        var message = Encoding.UTF8.GetString(eventArgs.Body.Span);
+        string eventName = eventArgs.RoutingKey;
+        string message = Encoding.UTF8.GetString(eventArgs.Body.Span);
 
         try
         {
@@ -201,16 +204,13 @@ public sealed class RabbitMQEventBus(
 
             await ProcessEvent(eventName, message);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            logger.LogWarning(ex, "Error Processing message \"{Message}\"", message);
-
-            activity.SetExceptionTags(ex);
+            logger.LogError(e, "Error Processing message \"{Message}\"", message);
+            activity.SetExceptionTags(e);
+            // TODO: Add DLX
         }
 
-        // Even on exception we take the message off the queue.
-        // in a REAL WORLD app this should be handled with a Dead Letter Exchange (DLX).
-        // For more information see: https://www.rabbitmq.com/dlx.html
         consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
     }
 
@@ -221,22 +221,19 @@ public sealed class RabbitMQEventBus(
             logger.LogTrace("Processing RabbitMQ event: {EventName}", eventName);
         }
 
-        await using var scope = serviceProvider.CreateAsyncScope();
+        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
 
-        if (!subscriptionInfo.EventTypes.TryGetValue(eventName, out var eventType))
+        if (!subscriptionInfo.EventTypes.TryGetValue(eventName, out Type eventType))
         {
             logger.LogWarning("Unable to resolve event type for event name {EventName}", eventName);
             return;
         }
 
-        // Deserialize the event
-        var integrationEvent = DeserializeMessage(message, eventType);
-
-        // REVIEW: This could be done in parallel
+        IntegrationEvent integrationEvent = DeserializeMessage(message, eventType);
 
         // Get all the handlers using the event type as the key
         foreach (
-            var handler in scope.ServiceProvider.GetKeyedServices<IIntegrationEventHandler>(
+            IIntegrationEventHandler handler in scope.ServiceProvider.GetKeyedServices<IIntegrationEventHandler>(
                 eventType
             )
         )
@@ -327,7 +324,7 @@ public sealed class RabbitMQEventBus(
                         logger.LogTrace("Starting RabbitMQ basic consume");
                     }
 
-                    var consumer = new AsyncEventingBasicConsumer(consumerChannel);
+                    AsyncEventingBasicConsumer consumer = new(consumerChannel);
 
                     consumer.Received += OnMessageReceived;
 
@@ -337,12 +334,12 @@ public sealed class RabbitMQEventBus(
                         consumer: consumer
                     );
 
-                    foreach (var (eventName, _) in subscriptionInfo.EventTypes)
+                    foreach (KeyValuePair<string, Type> eventType in subscriptionInfo.EventTypes)
                     {
                         consumerChannel.QueueBind(
                             queue: queueName,
                             exchange: ExchangeName,
-                            routingKey: eventName
+                            routingKey: eventType.Key
                         );
                     }
                 }
@@ -365,14 +362,16 @@ public sealed class RabbitMQEventBus(
     private static ResiliencePipeline CreateResiliencePipeline(int retryCount)
     {
         // See https://www.pollydocs.org/strategies/retry.html
-        var retryOptions = new RetryStrategyOptions
-        {
-            ShouldHandle = new PredicateBuilder()
-                .Handle<BrokerUnreachableException>()
-                .Handle<SocketException>(),
-            MaxRetryAttempts = retryCount,
-            DelayGenerator = (context) => ValueTask.FromResult(GenerateDelay(context.AttemptNumber))
-        };
+        RetryStrategyOptions retryOptions =
+            new()
+            {
+                ShouldHandle = new PredicateBuilder()
+                    .Handle<BrokerUnreachableException>()
+                    .Handle<SocketException>(),
+                MaxRetryAttempts = retryCount,
+                DelayGenerator = (context) =>
+                    ValueTask.FromResult(GenerateDelay(context.AttemptNumber))
+            };
 
         return new ResiliencePipelineBuilder().AddRetry(retryOptions).Build();
 
