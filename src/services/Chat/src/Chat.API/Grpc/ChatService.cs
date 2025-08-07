@@ -52,7 +52,7 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         }
         catch (EntityNotFoundException e)
         {
-            logger.LogTrace(e, "Chat with code {code} was not found", request.Code);
+            logger.LogInformation(e, "Chat with code {code} was not found", request.Code);
             throw new RpcException(
                 new Status(StatusCode.NotFound, $"Chat with code {request.Code} was not found")
             );
@@ -82,14 +82,14 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         }
         catch (UserAlreadyJoinedException e)
         {
-            logger.LogTrace(e, "The user has already joined");
+            logger.LogInformation(e, "The user has already joined");
             throw new RpcException(
                 new Status(StatusCode.AlreadyExists, "The user has already joined")
             );
         }
         catch (EntityNotFoundException e)
         {
-            logger.LogTrace(e, "Chat with code {code} was not found", request.Code);
+            logger.LogInformation(e, "Chat with code {code} was not found", request.Code);
             throw new RpcException(
                 new Status(StatusCode.NotFound, $"Chat with code {request.Code} was not found")
             );
