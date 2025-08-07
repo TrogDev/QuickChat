@@ -19,18 +19,7 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         ServerCallContext context
     )
     {
-        GetUserChatsQuery query;
-
-        try
-        {
-            query = new(new Guid(request.UserId));
-        }
-        catch (FormatException e)
-        {
-            logger.LogError(e, "Invalid UserId format");
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid UserId format"));
-        }
-
+        GetUserChatsQuery query = new(ParseGuid(request.UserId, nameof(request.UserId)));
         IList<Domain.Entities.Chat> chats = await mediator.Send(query);
         GetUserChatsReply reply = new();
         reply.Chats.AddRange(chats.Select(c => c.ToProto()));
@@ -64,17 +53,8 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
 
     public override async Task<Empty> JoinChat(JoinChatRequest request, ServerCallContext context)
     {
-        JoinChatCommand command;
-
-        try
-        {
-            command = new(request.Code, new Guid(request.UserId), request.Name);
-        }
-        catch (FormatException e)
-        {
-            logger.LogError(e, "Invalid UserId format");
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid UserId format"));
-        }
+        JoinChatCommand command =
+            new(request.Code, ParseGuid(request.UserId, nameof(request.UserId)), request.Name);
 
         try
         {
@@ -107,5 +87,18 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         Domain.Entities.Chat chat = await mediator.Send(command);
         CreateChatReply reply = new() { Chat = chat.ToProto() };
         return reply;
+    }
+
+    private Guid ParseGuid(string guid, string fieldName)
+    {
+        try
+        {
+            return new Guid(guid);
+        }
+        catch (FormatException e)
+        {
+            logger.LogError(e, "Invalid {Field} format", fieldName);
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid UserId format"));
+        }
     }
 }
