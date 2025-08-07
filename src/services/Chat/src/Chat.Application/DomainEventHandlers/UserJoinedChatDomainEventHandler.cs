@@ -16,7 +16,12 @@ public class UserJoinedChatDomainEventHandler(IEventBus eventBus)
     )
     {
         UserJoinedChatIntegrationEvent integrationEvent =
-            new() { Chat = notification.Chat, User = notification.User };
+            new()
+            {
+                ChatId = notification.Chat.Id,
+                UserId = notification.User.UserId,
+                UserName = notification.User.Name
+            };
         await eventBus.PublishAsync(integrationEvent);
     }
 }

@@ -5,6 +5,7 @@ namespace QuickChat.Chat.Application.IntegrationEvents.Events;
 
 public record UserJoinedChatIntegrationEvent : IntegrationEvent
 {
-    public required Domain.Entities.Chat Chat { get; init; }
-    public required ChatParticipant User { get; init; }
+    public required Guid ChatId { get; set; }
+    public required Guid UserId { get; set; }
+    public required string UserName { get; set; }
 }
