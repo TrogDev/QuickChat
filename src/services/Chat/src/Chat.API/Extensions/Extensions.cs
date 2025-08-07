@@ -19,7 +19,7 @@ public static class Extensions
         });
         builder.Services.AddMigration<ChatContext>();
         builder.Services.AddScoped<IChatRepository, ChatRepository>();
-        builder.AddRabbitMqEventBus("eventbus");
+        builder.AddRabbitMqEventBus("EventBus");
 
         builder.Services.AddTransient<ICodeGenerator, CodeGenerator>();
 
