@@ -12,7 +12,7 @@ public interface IChatRepository : IRepository<Domain.Entities.Chat>
     /// </summary>
     /// <param name="code">The chat code.</param>
     /// <returns>The chat entity matching the code.</returns>
-    /// <exception cref="EntityNotFoundException">Thrown if an attachment is not found.</exception>
+    /// <exception cref="EntityNotFoundException">Thrown if an chat is not found.</exception>
     Task<Domain.Entities.Chat> GetByCode(string code);
 
     /// <summary>
