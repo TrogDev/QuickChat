@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using QuickChat.EventBus.Extensions;
 
-namespace QuickChat.Identity.Infrastructure.Behaviors;
+namespace QuickChat.Identity.Application.Behaviors;
 
 public class LoggingBehavior<TRequest, TResponse>(
     ILogger<LoggingBehavior<TRequest, TResponse>> logger

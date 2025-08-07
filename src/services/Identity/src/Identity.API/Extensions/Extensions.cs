@@ -1,7 +1,7 @@
+using QuickChat.Identity.Application.Behaviors;
 using QuickChat.Identity.Application.Commands;
 using QuickChat.Identity.Application.Services;
 using QuickChat.Identity.Infrastructure;
-using QuickChat.Identity.Infrastructure.Behaviors;
 using QuickChat.Identity.Infrastructure.Services;
 
 namespace QuickChat.Identity.API.Extensions;
