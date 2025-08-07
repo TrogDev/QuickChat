@@ -19,7 +19,7 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         ServerCallContext context
     )
     {
-        GetUserChatsQuery query = new(ParseGuid(request.UserId, nameof(request.UserId)));
+        GetUserChatsQuery query = new(ParseGuid(request.UserId, "user_id"));
         IList<Domain.Entities.Chat> chats = await mediator.Send(query);
         GetUserChatsReply reply = new();
         reply.Chats.AddRange(chats.Select(c => c.ToProto()));
@@ -54,7 +54,7 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
     public override async Task<Empty> JoinChat(JoinChatRequest request, ServerCallContext context)
     {
         JoinChatCommand command =
-            new(request.Code, ParseGuid(request.UserId, nameof(request.UserId)), request.Name);
+            new(request.Code, ParseGuid(request.UserId, "user_id"), request.Name);
 
         try
         {
