@@ -9,7 +9,7 @@ namespace QuickChat.Message.Infrastructure;
 
 public class MessageContext : DbContext, IUnitOfWork
 {
-    private readonly IMediator mediator;
+    private readonly IMediator? mediator;
 
     public DbSet<Domain.Entities.Message> Messages { get; set; }
     public DbSet<MessageAttachment> MessageAttachments { get; set; }
@@ -51,6 +51,9 @@ public class MessageContext : DbContext, IUnitOfWork
         {
             entry.Entity.ClearDomainEvents();
         }
+
+        if (mediator == null)
+            return;
 
         foreach (INotification domainEvent in domainEvents)
         {

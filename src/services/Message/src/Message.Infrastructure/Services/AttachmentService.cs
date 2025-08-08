@@ -57,7 +57,9 @@ public class AttachmentService(IOptions<AttachmentOptions> options, HttpClient c
         HttpResponseMessage response
     )
     {
-        List<MessageAttachment> attachments = await response.Content.ReadFromJsonAsync<List<MessageAttachment>>();
+        List<MessageAttachment> attachments = (
+            await response.Content.ReadFromJsonAsync<List<MessageAttachment>>()
+        )!;
 
         foreach (MessageAttachment attachment in attachments)
         {
