@@ -43,7 +43,7 @@ public class MessageTest
 
         // Assert
         Assert.False(message.IsDeleted);
-        Assert.Equal(text, newText);
+        Assert.Equal(newText, message.Text);
         Assert.Equal(userId, message.UserId);
         Assert.Equal(chatId, message.ChatId);
         Assert.Single(message.Attachments);
