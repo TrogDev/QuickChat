@@ -2,12 +2,13 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-      <RootNamespace>QuickChat.Chat.API</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>QuickChat.Chat.API</RootNamespace>
     <AssemblyName>QuickChat.Chat.API</AssemblyName>
     <PublishAot Condition="'$(EnableAotPublishing)' == 'true'">true</PublishAot>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.65.0" />
   </ItemGroup>
 
   <ItemGroup>

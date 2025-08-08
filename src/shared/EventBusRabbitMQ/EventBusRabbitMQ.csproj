@@ -2,15 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>QuickChat.EventBusRabbitMQ</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.RabbitMQ.Client" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-    <PackageReference Include="Polly.Core" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="Polly.Core" Version="8.4.1" />
   </ItemGroup>
 
   <ItemGroup>

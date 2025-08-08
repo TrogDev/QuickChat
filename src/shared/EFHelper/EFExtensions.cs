@@ -62,15 +62,15 @@ public static class EFExtensions
 
             await strategy.ExecuteAsync(() => InvokeSeeder(seeder, context, scopeServices));
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
             logger.LogError(
-                ex,
+                e,
                 "An error occurred while migrating the database used on context {DbContextName}",
                 typeof(TContext).Name
             );
 
-            activity.SetExceptionTags(ex);
+            activity.SetExceptionTags(e);
 
             throw;
         }
@@ -83,16 +83,18 @@ public static class EFExtensions
     )
         where TContext : DbContext
     {
-        using var activity = ActivitySource.StartActivity($"Migrating {typeof(TContext).Name}");
+        using Activity activity = ActivitySource.StartActivity(
+            $"Migrating {typeof(TContext).Name}"
+        );
 
         try
         {
             await context.Database.MigrateAsync();
             await seeder(context, services);
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            activity.SetExceptionTags(ex);
+            activity.SetExceptionTags(e);
 
             throw;
         }

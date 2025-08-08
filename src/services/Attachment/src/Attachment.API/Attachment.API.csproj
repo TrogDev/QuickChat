@@ -3,13 +3,14 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>QuickChat.Attachment.API</RootNamespace>
     <AssemblyName>QuickChat.Attachment.API</AssemblyName>
     <PublishAot Condition="'$(EnableAotPublishing)' == 'true'">true</PublishAot>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Http" />
+    <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
   </ItemGroup>
 
   <ItemGroup>

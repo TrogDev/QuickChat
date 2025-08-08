@@ -2,20 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>QuickChat.Message.Infrastructure</RootNamespace>
     <AssemblyName>QuickChat.Message.Infrastructure</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Message.Application/Message.Application.csproj" />
+    <ProjectReference Include="..\Message.Application\Message.Application.csproj" />
     <ProjectReference Include="..\..\..\..\shared\EventBusRabbitMQ\EventBusRabbitMQ.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
   </ItemGroup>
   
 </Project>

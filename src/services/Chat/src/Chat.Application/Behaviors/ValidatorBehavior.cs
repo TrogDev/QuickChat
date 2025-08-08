@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using QuickChat.EventBus.Extensions;
+using QuickChat.Logging;
 
 namespace QuickChat.Chat.Application.Behaviors;
 

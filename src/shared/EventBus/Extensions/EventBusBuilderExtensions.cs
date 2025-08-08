@@ -27,9 +27,8 @@ public static class EventBusBuilderExtensions
         where T : IntegrationEvent
         where TH : class, IIntegrationEventHandler<T>
     {
-        // Use keyed services to register multiple handlers for the same event type
-        // the consumer can use IKeyedServiceProvider.GetKeyedService<IIntegrationEventHandler>(typeof(T)) to get all
-        // handlers for the event type.
+        // The consumer can use IKeyedServiceProvider.GetKeyedService<IIntegrationEventHandler>(typeof(T))
+        // to get all handlers for the event type.
         eventBusBuilder.Services.AddKeyedTransient<IIntegrationEventHandler, TH>(typeof(T));
 
         eventBusBuilder.Services.Configure<EventBusSubscriptionInfo>(o =>

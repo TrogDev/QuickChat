@@ -1,4 +1,4 @@
-﻿namespace QuickChat.EventBus.Extensions;
+﻿namespace QuickChat.Logging;
 
 public static class GenericTypeExtensions
 {

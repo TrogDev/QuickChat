@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>QuickChat.Attachment.Domain</RootNamespace>
     <AssemblyName>QuickChat.Attachment.Domain</AssemblyName>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" />
+    <PackageReference Include="MediatR" Version="12.4.0" />
   </ItemGroup>
   
 </Project>

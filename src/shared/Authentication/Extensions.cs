@@ -9,40 +9,28 @@ public static class AuthenticationExtensions
 {
     public static IServiceCollection AddDefaultAuthentication(this IHostApplicationBuilder builder)
     {
-        // {
-        //   "Identity": {
-        //     "Url": "http://identity",
-        //     "Audience": "Message"
-        //    }
-        // }
+        AuthenticationOptions? options = builder
+            .Configuration.GetSection("Identity")
+            .Get<AuthenticationOptions>();
 
-        IConfigurationSection identitySection = builder.Configuration.GetSection("Identity");
-
-        if (
-            !identitySection.Exists()
-            || identitySection["Url"] == null
-            || identitySection["Audience"] == null
-        )
+        if (options == null || options.Url == null || options.Audience == null)
         {
-            // No identity section, so no authentication
+            // No options, so no authentication
             return builder.Services;
         }
 
-        // Prevent from mapping "sub" claim to nameidentifier.
-        JsonWebTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
-
         builder
             .Services.AddAuthentication()
-            .AddJwtBearer(options =>
+            .AddJwtBearer(o =>
             {
-                string identityUrl = identitySection["Url"]!;
-                string audience = identitySection["Audience"]!;
+                string identityUrl = options.Url;
+                string audience = options.Audience;
 
-                options.Authority = identityUrl;
-                options.RequireHttpsMetadata = false;
-                options.Audience = audience;
-                options.TokenValidationParameters.ValidIssuers = [identityUrl];
-                options.TokenValidationParameters.ValidateAudience = false;
+                o.Authority = identityUrl;
+                o.RequireHttpsMetadata = false;
+                o.Audience = audience;
+                o.TokenValidationParameters.ValidIssuers = [identityUrl];
+                o.TokenValidationParameters.ValidateAudience = false;
             });
 
         builder.Services.AddAuthorization();

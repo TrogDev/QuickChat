@@ -1,12 +1,20 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OpenTelemetry;
-using OpenTelemetry.Context.Propagation;
+using Polly;
 using Polly.Retry;
+using QuickChat.EventBus.Abstractions;
+using QuickChat.EventBus.Events;
 using QuickChat.Logging;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 
 namespace QuickChat.EventBusRabbitMQ;
 
@@ -15,25 +23,25 @@ public sealed class RabbitMQEventBus(
     IServiceProvider serviceProvider,
     IOptions<EventBusOptions> options,
     IOptions<EventBusSubscriptionInfo> subscriptionOptions,
-    RabbitMQTelemetry rabbitMQTelemetry
+    ConnectionFactory connectionFactory
 ) : IEventBus, IDisposable, IHostedService
 {
-    private const string ExchangeName = "quickchat_event_bus";
+    private const string exchangeName = "quickchat_event_bus";
 
     private readonly ILogger<RabbitMQEventBus> logger = logger;
     private readonly IServiceProvider serviceProvider = serviceProvider;
-    private readonly ResiliencePipeline _pipeline = CreateResiliencePipeline(
+    private readonly ResiliencePipeline pipeline = CreateResiliencePipeline(
         options.Value.RetryCount
     );
-    private readonly TextMapPropagator propagator = rabbitMQTelemetry.Propagator;
-    private readonly ActivitySource activitySource = rabbitMQTelemetry.ActivitySource;
+    private readonly ConnectionFactory connectionFactory = connectionFactory;
+    private readonly ActivitySource activitySource = new("EventBusRabbitMQ");
     private readonly string queueName = options.Value.SubscriptionClientName;
     private readonly EventBusSubscriptionInfo subscriptionInfo = subscriptionOptions.Value;
     private IConnection rabbitMQConnection;
 
-    private IModel consumerChannel;
+    private IChannel consumerChannel;
 
-    public Task PublishAsync(IntegrationEvent @event)
+    public async Task PublishAsync(IntegrationEvent @event)
     {
         string routingKey = @event.GetType().Name;
 
@@ -46,8 +54,8 @@ public sealed class RabbitMQEventBus(
             );
         }
 
-        using IModel channel =
-            rabbitMQConnection?.CreateModel()
+        using IChannel channel =
+            await rabbitMQConnection?.CreateChannelAsync()
             ?? throw new InvalidOperationException("RabbitMQ connection is not open");
 
         if (logger.IsEnabled(LogLevel.Trace))
@@ -55,18 +63,14 @@ public sealed class RabbitMQEventBus(
             logger.LogTrace("Declaring RabbitMQ exchange to publish event: {EventId}", @event.Id);
         }
 
-        channel.ExchangeDeclare(exchange: ExchangeName, type: "direct");
+        await channel.ExchangeDeclareAsync(exchange: exchangeName, type: "direct");
 
         byte[] body = SerializeMessage(@event);
 
-        // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
-        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md
-        string activityName = $"{routingKey} publish";
-
-        return _pipeline.Execute(() =>
+        await pipeline.Execute(async () =>
         {
             using Activity activity = activitySource.StartActivity(
-                activityName,
+                $"{routingKey} publish",
                 ActivityKind.Client
             );
 
@@ -84,25 +88,7 @@ public sealed class RabbitMQEventBus(
                 contextToInject = Activity.Current.Context;
             }
 
-            IBasicProperties properties = channel.CreateBasicProperties();
-            // persistent
-            properties.DeliveryMode = 2;
-
-            static void InjectTraceContextIntoBasicProperties(
-                IBasicProperties props,
-                string key,
-                string value
-            )
-            {
-                props.Headers ??= new Dictionary<string, object>();
-                props.Headers[key] = value;
-            }
-
-            propagator.Inject(
-                new PropagationContext(contextToInject, Baggage.Current),
-                properties,
-                InjectTraceContextIntoBasicProperties
-            );
+            BasicProperties properties = new() { DeliveryMode = DeliveryModes.Persistent };
 
             SetActivityContext(activity, routingKey, "publish");
 
@@ -113,15 +99,13 @@ public sealed class RabbitMQEventBus(
 
             try
             {
-                channel.BasicPublish(
-                    exchange: ExchangeName,
+                await channel.BasicPublishAsync(
+                    exchange: exchangeName,
                     routingKey: routingKey,
                     mandatory: true,
                     basicProperties: properties,
                     body: body
                 );
-
-                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
@@ -152,35 +136,9 @@ public sealed class RabbitMQEventBus(
 
     private async Task OnMessageReceived(object sender, BasicDeliverEventArgs eventArgs)
     {
-        static IEnumerable<string> ExtractTraceContextFromBasicProperties(
-            IBasicProperties props,
-            string key
-        )
-        {
-            if (props.Headers.TryGetValue(key, out object value))
-            {
-                byte[] bytes = value as byte[];
-                return [Encoding.UTF8.GetString(bytes)];
-            }
-            return [];
-        }
-
-        // Extract the PropagationContext of the upstream parent from the message headers.
-        PropagationContext parentContext = propagator.Extract(
-            default,
-            eventArgs.BasicProperties,
-            ExtractTraceContextFromBasicProperties
-        );
-        Baggage.Current = parentContext.Baggage;
-
-        // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
-        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md
-        string activityName = $"{eventArgs.RoutingKey} receive";
-
         using Activity activity = activitySource.StartActivity(
-            activityName,
-            ActivityKind.Client,
-            parentContext.ActivityContext
+            $"{eventArgs.RoutingKey} receive",
+            ActivityKind.Client
         );
 
         SetActivityContext(activity, eventArgs.RoutingKey, "receive");
@@ -191,17 +149,6 @@ public sealed class RabbitMQEventBus(
         try
         {
             activity?.SetTag("message", message);
-
-            if (
-                message.Contains(
-                    "throw-fake-exception",
-                    StringComparison.InvariantCultureIgnoreCase
-                )
-            )
-            {
-                throw new InvalidOperationException($"Fake exception requested: \"{message}\"");
-            }
-
             await ProcessEvent(eventName, message);
         }
         catch (Exception e)
@@ -211,7 +158,7 @@ public sealed class RabbitMQEventBus(
             // TODO: Add DLX
         }
 
-        consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+        await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
     }
 
     private async Task ProcessEvent(string eventName, string message)
@@ -285,13 +232,13 @@ public sealed class RabbitMQEventBus(
         // Messaging is async so we don't need to wait for it to complete. On top of this
         // the APIs are blocking, so we need to run this on a background thread.
         _ = Task.Factory.StartNew(
-            () =>
+            async () =>
             {
                 try
                 {
                     logger.LogInformation("Starting RabbitMQ connection on a background thread");
 
-                    rabbitMQConnection = serviceProvider.GetRequiredService<IConnection>();
+                    rabbitMQConnection = await connectionFactory.CreateConnectionAsync();
                     if (!rabbitMQConnection.IsOpen)
                     {
                         return;
@@ -302,16 +249,20 @@ public sealed class RabbitMQEventBus(
                         logger.LogTrace("Creating RabbitMQ consumer channel");
                     }
 
-                    consumerChannel = rabbitMQConnection.CreateModel();
+                    consumerChannel = await rabbitMQConnection.CreateChannelAsync();
 
-                    consumerChannel.CallbackException += (sender, ea) =>
+                    consumerChannel.CallbackExceptionAsync += (sender, ea) =>
                     {
                         logger.LogWarning(ea.Exception, "Error with RabbitMQ consumer channel");
+                        return Task.CompletedTask;
                     };
 
-                    consumerChannel.ExchangeDeclare(exchange: ExchangeName, type: "direct");
+                    await consumerChannel.ExchangeDeclareAsync(
+                        exchange: exchangeName,
+                        type: "direct"
+                    );
 
-                    consumerChannel.QueueDeclare(
+                    await consumerChannel.QueueDeclareAsync(
                         queue: queueName,
                         durable: true,
                         exclusive: false,
@@ -326,9 +277,9 @@ public sealed class RabbitMQEventBus(
 
                     AsyncEventingBasicConsumer consumer = new(consumerChannel);
 
-                    consumer.Received += OnMessageReceived;
+                    consumer.ReceivedAsync += OnMessageReceived;
 
-                    consumerChannel.BasicConsume(
+                    await consumerChannel.BasicConsumeAsync(
                         queue: queueName,
                         autoAck: false,
                         consumer: consumer
@@ -336,9 +287,9 @@ public sealed class RabbitMQEventBus(
 
                     foreach (KeyValuePair<string, Type> eventType in subscriptionInfo.EventTypes)
                     {
-                        consumerChannel.QueueBind(
+                        await consumerChannel.QueueBindAsync(
                             queue: queueName,
-                            exchange: ExchangeName,
+                            exchange: exchangeName,
                             routingKey: eventType.Key
                         );
                     }
@@ -350,7 +301,6 @@ public sealed class RabbitMQEventBus(
             },
             TaskCreationOptions.LongRunning
         );
-
         return Task.CompletedTask;
     }
 
@@ -361,7 +311,6 @@ public sealed class RabbitMQEventBus(
 
     private static ResiliencePipeline CreateResiliencePipeline(int retryCount)
     {
-        // See https://www.pollydocs.org/strategies/retry.html
         RetryStrategyOptions retryOptions =
             new()
             {

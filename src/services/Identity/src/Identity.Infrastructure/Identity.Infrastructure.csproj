@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>QuickChat.Identity.Infrastructure</RootNamespace>
     <AssemblyName>QuickChat.Identity.Infrastructure</AssemblyName>
     <IsAotCompatible>true</IsAotCompatible>
@@ -10,12 +11,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Identity.Application\Identity.Application.csproj" />
-    <ProjectReference Include="..\..\..\..\shared\EventBusRabbitMQ\EventBusRabbitMQ.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.0" />
   </ItemGroup>
 
 </Project>

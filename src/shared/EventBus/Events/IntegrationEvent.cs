@@ -1,4 +1,6 @@
-﻿namespace QuickChat.EventBus.Events;
+﻿using System.Text.Json.Serialization;
+
+namespace QuickChat.EventBus.Events;
 
 public record IntegrationEvent()
 {
