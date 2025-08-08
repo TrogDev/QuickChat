@@ -21,7 +21,7 @@ public static class RabbitMqDependencyInjectionExtensions
         {
             return new ConnectionFactory()
             {
-                Uri = new Uri(builder.Configuration.GetConnectionString(connectionName))
+                Uri = new Uri(builder.Configuration.GetConnectionString(connectionName)!)
             };
         });
 

@@ -37,9 +37,8 @@ public sealed class RabbitMQEventBus(
     private readonly ActivitySource activitySource = new("EventBusRabbitMQ");
     private readonly string queueName = options.Value.SubscriptionClientName;
     private readonly EventBusSubscriptionInfo subscriptionInfo = subscriptionOptions.Value;
-    private IConnection rabbitMQConnection;
-
-    private IChannel consumerChannel;
+    private IConnection? rabbitMQConnection;
+    private IChannel? consumerChannel;
 
     public async Task PublishAsync(IntegrationEvent @event)
     {
@@ -54,9 +53,12 @@ public sealed class RabbitMQEventBus(
             );
         }
 
-        using IChannel channel =
-            await rabbitMQConnection?.CreateChannelAsync()
-            ?? throw new InvalidOperationException("RabbitMQ connection is not open");
+        if (rabbitMQConnection == null)
+        {
+            throw new InvalidOperationException("RabbitMQ connection is not open");
+        }
+
+        using IChannel channel = await rabbitMQConnection.CreateChannelAsync();
 
         if (logger.IsEnabled(LogLevel.Trace))
         {
@@ -69,7 +71,7 @@ public sealed class RabbitMQEventBus(
 
         await pipeline.Execute(async () =>
         {
-            using Activity activity = activitySource.StartActivity(
+            using Activity? activity = activitySource.StartActivity(
                 $"{routingKey} publish",
                 ActivityKind.Client
             );
@@ -116,7 +118,7 @@ public sealed class RabbitMQEventBus(
         });
     }
 
-    private static void SetActivityContext(Activity activity, string routingKey, string operation)
+    private static void SetActivityContext(Activity? activity, string routingKey, string operation)
     {
         if (activity is not null)
         {
@@ -136,7 +138,7 @@ public sealed class RabbitMQEventBus(
 
     private async Task OnMessageReceived(object sender, BasicDeliverEventArgs eventArgs)
     {
-        using Activity activity = activitySource.StartActivity(
+        using Activity? activity = activitySource.StartActivity(
             $"{eventArgs.RoutingKey} receive",
             ActivityKind.Client
         );
@@ -158,7 +160,7 @@ public sealed class RabbitMQEventBus(
             // TODO: Add DLX
         }
 
-        await consumerChannel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+        await consumerChannel!.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
     }
 
     private async Task ProcessEvent(string eventName, string message)
@@ -170,7 +172,7 @@ public sealed class RabbitMQEventBus(
 
         await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
 
-        if (!subscriptionInfo.EventTypes.TryGetValue(eventName, out Type eventType))
+        if (!subscriptionInfo.EventTypes.TryGetValue(eventName, out Type? eventType))
         {
             logger.LogWarning("Unable to resolve event type for event name {EventName}", eventName);
             return;
@@ -201,11 +203,10 @@ public sealed class RabbitMQEventBus(
     )]
     private IntegrationEvent DeserializeMessage(string message, Type eventType)
     {
-        return JsonSerializer.Deserialize(
-                message,
-                eventType,
-                subscriptionInfo.JsonSerializerOptions
-            ) as IntegrationEvent;
+        return (
+            JsonSerializer.Deserialize(message, eventType, subscriptionInfo.JsonSerializerOptions)
+            as IntegrationEvent
+        )!;
     }
 
     [UnconditionalSuppressMessage(
