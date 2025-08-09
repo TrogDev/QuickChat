@@ -9,7 +9,7 @@ public class ValidatorBehavior<TRequest, TResponse>(
     ILogger<ValidatorBehavior<TRequest, TResponse>> logger,
     IEnumerable<IValidator<TRequest>> validators
 ) : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : notnull
 {
     private readonly ILogger<ValidatorBehavior<TRequest, TResponse>> logger = logger;
     private readonly IEnumerable<IValidator<TRequest>> validators = validators;
