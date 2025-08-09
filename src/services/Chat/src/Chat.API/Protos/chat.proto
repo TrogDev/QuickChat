@@ -2,7 +2,6 @@ syntax = "proto3";
 
 option csharp_namespace = "QuickChat.Chat.API.Grpc";
 
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 package ChatApi;
@@ -10,7 +9,7 @@ package ChatApi;
 service Chat {
     rpc GetUserChats(GetUserChatsRequest) returns (GetUserChatsReply) {}
     rpc GetChatByCode(GetChatByCodeRequest) returns (GetChatByCodeReply) {}
-    rpc JoinChat(JoinChatRequest) returns (google.protobuf.Empty) {}
+    rpc JoinChat(JoinChatRequest) returns (JoinChatReply) {}
     rpc CreateChat(CreateChatRequest) returns (CreateChatReply) {}
 }
 
@@ -34,6 +33,10 @@ message JoinChatRequest {
     string chat_id = 1;
     string user_id = 2;
     string name = 3;
+}
+
+message JoinChatReply {
+    ChatParticipantMessage participant = 1;
 }
 
 message CreateChatRequest {

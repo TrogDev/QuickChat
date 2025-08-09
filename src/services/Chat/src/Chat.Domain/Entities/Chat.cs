@@ -11,7 +11,7 @@ public class Chat : Entity<Guid>, IAggregateRoot
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public long LifeTimeSeconds { get; set; } = (int)TimeSpan.FromDays(30).TotalSeconds;
 
-    public void Join(Guid userId, string name)
+    public ChatParticipant Join(Guid userId, string name)
     {
         if (Participants.Any(e => e.UserId == userId))
         {
@@ -21,6 +21,7 @@ public class Chat : Entity<Guid>, IAggregateRoot
         ChatParticipant participant = new() { UserId = userId, Name = name };
         Participants.Add(participant);
         AddDomainEvent(new UserJoinedChatDomainEvent() { Chat = this, User = participant });
+        return participant;
     }
 
     public bool IsExpired()

@@ -22,13 +22,10 @@ public class ChatTests
             };
 
         // Act
-        chat.Join(userId2, "Test");
-        ChatParticipant? newParticipant = chat.Participants.FirstOrDefault(
-            p => p.UserId == userId2
-        );
+        ChatParticipant newParticipant = chat.Join(userId2, "Test");
 
         // Assert
-        Assert.NotNull(newParticipant);
+        Assert.Contains(newParticipant, chat.Participants);
         Assert.Equal(2, chat.Participants.Count);
         Assert.Equal(userId2, newParticipant.UserId);
         Assert.Equal("Test", newParticipant.Name);

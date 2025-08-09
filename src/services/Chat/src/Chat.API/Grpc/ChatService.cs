@@ -5,6 +5,7 @@ using QuickChat.Chat.API.Extensions;
 using QuickChat.Chat.Application.Commands;
 using QuickChat.Chat.Application.Exceptions;
 using QuickChat.Chat.Application.Queries;
+using QuickChat.Chat.Domain.Entities;
 using QuickChat.Chat.Domain.Exceptions;
 
 namespace QuickChat.Chat.API.Grpc;
@@ -51,7 +52,10 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         return reply;
     }
 
-    public override async Task<Empty> JoinChat(JoinChatRequest request, ServerCallContext context)
+    public override async Task<JoinChatReply> JoinChat(
+        JoinChatRequest request,
+        ServerCallContext context
+    )
     {
         JoinChatCommand command =
             new(
@@ -60,9 +64,11 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
                 request.Name
             );
 
+        ChatParticipant participant;
+
         try
         {
-            await mediator.Send(command);
+            participant = await mediator.Send(command);
         }
         catch (UserAlreadyJoinedException e)
         {
@@ -79,7 +85,9 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
             );
         }
 
-        return new Empty();
+        JoinChatReply reply = new() { Participant = participant.ToProto() };
+
+        return reply;
     }
 
     public override async Task<CreateChatReply> CreateChat(
