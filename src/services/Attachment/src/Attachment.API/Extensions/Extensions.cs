@@ -1,5 +1,6 @@
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
+using QuickChat.Attachment.API.Exceptions.Handlers;
 using QuickChat.Attachment.Application.Behaviors;
 using QuickChat.Attachment.Application.Commands;
 using QuickChat.Attachment.Application.Repositories;
@@ -15,6 +16,9 @@ public static class Extensions
 {
     public static void AddApplicationServices(this IHostApplicationBuilder builder)
     {
+        builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+        builder.Services.AddExceptionHandler<InternalServerExceptionHandler>();
+
         builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("MinioOptions"));
         MinioOptions minioOptions = builder
             .Configuration.GetRequiredSection("MinioOptions")

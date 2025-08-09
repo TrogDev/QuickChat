@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using QuickChat.Attachment.API.Exceptions;
 using QuickChat.Attachment.Application.Commands;
 using QuickChat.Attachment.Application.Exceptions;
 using QuickChat.Attachment.Application.Queries;
@@ -25,7 +26,7 @@ public static class AttachmentApi
     )
     {
         GetAttachmentsByIdQuery query = new(ids);
-        return Results.Ok(await mediator.Send(query));
+        return Results.Ok(await mediator!.Send(query));
     }
 
     public static async Task<IResult> Upload(
@@ -55,7 +56,14 @@ public static class AttachmentApi
         }
         catch (InvalidAttachmentTypeException)
         {
-            return Results.BadRequest("Invalid attachament type for this file.");
+            return Results.BadRequest(
+                new ApiExceptionModel()
+                {
+                    Error = nameof(InvalidAttachmentTypeException),
+                    Title = "Invalid attachament type for this file",
+                    Description = "File does not match attachment type, change extension or type"
+                }
+            );
         }
 
         return Results.Ok(result);

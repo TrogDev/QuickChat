@@ -11,6 +11,7 @@ builder.Services.AddApiVersioning(o =>
 });
 
 WebApplication app = builder.Build();
+app.UseExceptionHandler(_ => { });
 
 IVersionedEndpointRouteBuilder attachment = app.NewVersionedApi("Attachment");
 attachment.MapAttachmentApiV1();
