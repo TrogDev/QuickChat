@@ -3,7 +3,7 @@ using QuickChat.Message.Application.Commands;
 
 namespace QuickChat.Message.Application.Validators;
 
-public class EditMessageCommandValidator : AbstractValidator<AddMessageCommand>
+public class EditMessageCommandValidator : AbstractValidator<EditMessageCommand>
 {
     public EditMessageCommandValidator()
     {

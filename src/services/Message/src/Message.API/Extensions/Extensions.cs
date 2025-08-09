@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using QuickChat.EFHelper;
 using QuickChat.Message.Application.Behaviors;
@@ -6,6 +7,7 @@ using QuickChat.Message.Application.IntegrationEvents.EventHandlers;
 using QuickChat.Message.Application.IntegrationEvents.Events;
 using QuickChat.Message.Application.Repositories;
 using QuickChat.Message.Application.Services;
+using QuickChat.Message.Application.Validators;
 using QuickChat.Message.Infrastructure;
 using QuickChat.Message.Infrastructure.Repositories;
 using QuickChat.Message.Infrastructure.Services;
@@ -29,6 +31,12 @@ public static class Extensions
             builder.Configuration.GetSection("Attachment")
         );
         builder.Services.AddHttpClient<IAttachmentService, AttachmentService>();
+
+        builder.Services.AddSingleton<IValidator<AddMessageCommand>, AddMessageCommandValidator>();
+        builder.Services.AddSingleton<
+            IValidator<EditMessageCommand>,
+            EditMessageCommandValidator
+        >();
 
         builder.Services.AddMediatR(cfg =>
         {

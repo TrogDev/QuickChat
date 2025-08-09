@@ -20,6 +20,7 @@ public class InternalServerExceptionHandler(ILogger<InternalServerExceptionHandl
         await httpContext.Response.WriteAsJsonAsync(
             new ApiExceptionModel()
             {
+                Status = httpContext.Response.StatusCode,
                 Error = "InternalServerException",
                 Title = "An unhandled error occurred"
             },

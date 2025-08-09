@@ -1,3 +1,4 @@
+using System.Net;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using QuickChat.Attachment.API.Exceptions;
@@ -56,14 +57,15 @@ public static class AttachmentApi
         }
         catch (InvalidAttachmentTypeException)
         {
-            return Results.BadRequest(
-                new ApiExceptionModel()
+            ApiExceptionModel exception =
+                new()
                 {
+                    Status = (int)HttpStatusCode.BadRequest,
                     Error = nameof(InvalidAttachmentTypeException),
                     Title = "Invalid attachament type for this file",
                     Description = "File does not match attachment type, change extension or type"
-                }
-            );
+                };
+            return exception.ToResult();
         }
 
         return Results.Ok(result);

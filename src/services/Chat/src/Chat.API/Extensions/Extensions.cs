@@ -1,8 +1,11 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using QuickChat.Chat.Application.Behaviors;
+using QuickChat.Chat.Application.Commands;
 using QuickChat.Chat.Application.Queries;
 using QuickChat.Chat.Application.Repositories;
 using QuickChat.Chat.Application.Services;
+using QuickChat.Chat.Application.Validators;
 using QuickChat.Chat.Infrastructure;
 using QuickChat.Chat.Infrastructure.Repositories;
 using QuickChat.EFHelper;
@@ -22,6 +25,9 @@ public static class Extensions
         builder.AddRabbitMqEventBus("EventBus");
 
         builder.Services.AddTransient<ICodeGenerator, CodeGenerator>();
+
+        builder.Services.AddSingleton<IValidator<CreateChatCommand>, CreateChatCommandValidator>();
+        builder.Services.AddSingleton<IValidator<JoinChatCommand>, JoinChatCommandValidator>();
 
         builder.Services.AddMediatR(cfg =>
         {

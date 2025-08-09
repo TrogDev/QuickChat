@@ -1,6 +1,7 @@
-using Google.Protobuf.WellKnownTypes;
+using System.Net;
 using Grpc.Core;
 using MediatR;
+using QuickChat.Chat.API.Exceptions;
 using QuickChat.Chat.API.Extensions;
 using QuickChat.Chat.Application.Commands;
 using QuickChat.Chat.Application.Exceptions;
@@ -43,9 +44,15 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         catch (EntityNotFoundException e)
         {
             logger.LogInformation(e, "Chat with code {code} was not found", request.Code);
-            throw new RpcException(
-                new Status(StatusCode.NotFound, $"Chat with code {request.Code} was not found")
-            );
+            ApiExceptionModel exception =
+                new()
+                {
+                    Status = (int)HttpStatusCode.NotFound,
+                    Error = nameof(EntityNotFoundException),
+                    Title = "Chat was not found",
+                    Description = $"Chat with code {request.Code} was not found"
+                };
+            throw exception.ToRpcException(StatusCode.NotFound);
         }
 
         GetChatByCodeReply reply = new() { Chat = chat.ToProto() };
@@ -72,17 +79,34 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         }
         catch (UserAlreadyJoinedException e)
         {
-            logger.LogInformation(e, "The user has already joined");
-            throw new RpcException(
-                new Status(StatusCode.AlreadyExists, "The user has already joined")
+            logger.LogInformation(
+                e,
+                "The user {userId} has already joined to the chat {chatId}",
+                request.UserId,
+                request.ChatId
             );
+            ApiExceptionModel exception =
+                new()
+                {
+                    Status = (int)HttpStatusCode.Conflict,
+                    Error = nameof(UserAlreadyJoinedException),
+                    Title = "The user has already joined",
+                    Description = "The user cannot join the same chat twice"
+                };
+            throw exception.ToRpcException(StatusCode.AlreadyExists);
         }
         catch (EntityNotFoundException e)
         {
             logger.LogInformation(e, "Chat with id {id} was not found", request.ChatId);
-            throw new RpcException(
-                new Status(StatusCode.NotFound, $"Chat with id {request.ChatId} was not found")
-            );
+            ApiExceptionModel exception =
+                new()
+                {
+                    Status = (int)HttpStatusCode.NotFound,
+                    Error = nameof(EntityNotFoundException),
+                    Title = "Chat was not found",
+                    Description = $"Chat with id {request.ChatId} was not found"
+                };
+            throw exception.ToRpcException(StatusCode.NotFound);
         }
 
         JoinChatReply reply = new() { Participant = participant.ToProto() };
@@ -110,9 +134,15 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         catch (FormatException e)
         {
             logger.LogError(e, "Invalid {Field} format", fieldName);
-            throw new RpcException(
-                new Status(StatusCode.InvalidArgument, $"Invalid {fieldName} format")
-            );
+            ApiExceptionModel exception =
+                new()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Error = nameof(EntityNotFoundException),
+                    Title = $"Invalid {fieldName} format",
+                    Description = $"The field should be correct Guid"
+                };
+            throw exception.ToRpcException(StatusCode.InvalidArgument);
         }
     }
 }

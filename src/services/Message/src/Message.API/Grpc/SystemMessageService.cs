@@ -1,5 +1,7 @@
+using System.Net;
 using Grpc.Core;
 using MediatR;
+using QuickChat.Message.API.Exceptions;
 using QuickChat.Message.API.Extensions;
 using QuickChat.Message.Application.Queries;
 
@@ -39,9 +41,15 @@ public class SystemMessageService(ISender mediator, ILogger<SystemMessageService
         catch (FormatException e)
         {
             logger.LogError(e, "Invalid {Field} format", fieldName);
-            throw new RpcException(
-                new Status(StatusCode.InvalidArgument, $"Invalid {fieldName} format")
-            );
+            ApiExceptionModel exception =
+                new()
+                {
+                    Status = (int)HttpStatusCode.BadRequest,
+                    Error = nameof(FormatException),
+                    Title = $"Invalid {fieldName} format",
+                    Description = $"The field should be correct Guid"
+                };
+            throw exception.ToRpcException(StatusCode.InvalidArgument);
         }
     }
 }
