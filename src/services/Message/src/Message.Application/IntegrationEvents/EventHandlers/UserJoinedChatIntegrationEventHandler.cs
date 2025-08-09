@@ -1,10 +1,8 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using QuickChat.EventBus.Abstractions;
-using QuickChat.EventBus.Events;
 using QuickChat.Message.Application.Commands;
 using QuickChat.Message.Application.IntegrationEvents.Events;
-using QuickChat.Message.Domain.Enums;
 
 namespace QuickChat.Message.Application.IntegrationEvents.EventHandlers;
 
@@ -25,11 +23,7 @@ public class UserJoinedChatIntegrationEventHandler(
         );
 
         AddSystemMessageCommand command =
-            new(
-                @event.ChatId,
-                $"User \"{@event.UserName}\" has joined the chat!",
-                SystemMessageType.UserJoined
-            );
+            new(@event.ChatId, $"User \"{@event.UserName}\" has joined the chat!");
 
         await mediator.Send(command);
     }

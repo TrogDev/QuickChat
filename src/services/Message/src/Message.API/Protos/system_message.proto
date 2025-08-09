@@ -25,9 +25,4 @@ message SystemMessageMessage {
     string chat_id = 2;
     string text = 3;
     google.protobuf.Timestamp created_at = 4;
-    SystemMessageType type = 5;
-}
-
-enum SystemMessageType {
-  USER_JOINED = 0;
 }

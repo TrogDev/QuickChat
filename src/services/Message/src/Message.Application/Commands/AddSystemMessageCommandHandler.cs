@@ -11,7 +11,7 @@ public class AddSystemMessageCommandHandler(ISystemMessageRepository repository)
 
     public async Task Handle(AddSystemMessageCommand request, CancellationToken cancellationToken)
     {
-        SystemMessage message = SystemMessage.Create(request.ChatId, request.Text, request.Type);
+        SystemMessage message = SystemMessage.Create(request.ChatId, request.Text);
         repository.Add(message);
         await repository.UnitOfWork.SaveChangesAsync(cancellationToken);
     }

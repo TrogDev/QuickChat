@@ -50,17 +50,8 @@ public static class MappingExtensions
         {
             Id = message.Id,
             ChatId = message.ChatId.ToString(),
-            Type = ToProto(message.Type),
             Text = message.Text,
             CreatedAt = Timestamp.FromDateTime(message.CreatedAt)
-        };
-    }
-
-    private static SystemMessageType ToProto(Domain.Enums.SystemMessageType type)
-    {
-        return type switch
-        {
-            _ => SystemMessageType.UserJoined,
         };
     }
 }

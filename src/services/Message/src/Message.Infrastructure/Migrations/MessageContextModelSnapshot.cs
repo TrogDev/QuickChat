@@ -98,9 +98,6 @@ namespace QuickChat.Message.Infrastructure.Migrations
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.ToTable("SystemMessages");

@@ -12,7 +12,7 @@ using QuickChat.Message.Infrastructure;
 namespace QuickChat.Message.Infrastructure.Migrations
 {
     [DbContext(typeof(MessageContext))]
-    [Migration("20250807173352_InitialCreate")]
+    [Migration("20250809160213_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -100,9 +100,6 @@ namespace QuickChat.Message.Infrastructure.Migrations
 
                     b.Property<string>("Text")
                         .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
