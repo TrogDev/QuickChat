@@ -31,7 +31,7 @@ message GetChatByCodeReply {
 }
 
 message JoinChatRequest {
-    string code = 1;
+    string chat_id = 1;
     string user_id = 2;
     string name = 3;
 }

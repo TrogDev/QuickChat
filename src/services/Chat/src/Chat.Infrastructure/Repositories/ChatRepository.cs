@@ -14,6 +14,13 @@ public class ChatRepository(ChatContext context) : IChatRepository
         context.Chats.Add(chat);
     }
 
+    public async Task<Domain.Entities.Chat> GetById(Guid id)
+    {
+        return await ExcludeExpired(context.Chats)
+                .Include(c => c.Participants)
+                .FirstOrDefaultAsync(c => c.Id == id) ?? throw new EntityNotFoundException();
+    }
+
     public async Task<Domain.Entities.Chat> GetByCode(string code)
     {
         return await ExcludeExpired(context.Chats)

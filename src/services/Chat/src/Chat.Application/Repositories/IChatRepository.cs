@@ -7,6 +7,15 @@ public interface IChatRepository : IRepository<Domain.Entities.Chat>
     void Add(Domain.Entities.Chat chat);
 
     /// <summary>
+    /// Retrieves a chat by its id field.
+    /// Expired chats are not included.
+    /// </summary>
+    /// <param name="id">The chat id.</param>
+    /// <returns>The chat entity matching the id.</returns>
+    /// <exception cref="EntityNotFoundException">Thrown if an chat is not found.</exception>
+    Task<Domain.Entities.Chat> GetById(Guid id);
+
+    /// <summary>
     /// Retrieves a chat by its code field.
     /// Expired chats are not included.
     /// </summary>

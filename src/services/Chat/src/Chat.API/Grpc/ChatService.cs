@@ -54,7 +54,11 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
     public override async Task<Empty> JoinChat(JoinChatRequest request, ServerCallContext context)
     {
         JoinChatCommand command =
-            new(request.Code, ParseGuid(request.UserId, "user_id"), request.Name);
+            new(
+                ParseGuid(request.ChatId, "chat_id"),
+                ParseGuid(request.UserId, "user_id"),
+                request.Name
+            );
 
         try
         {
@@ -69,9 +73,9 @@ public class ChatService(ISender mediator, ILogger<ChatService> logger) : Chat.C
         }
         catch (EntityNotFoundException e)
         {
-            logger.LogInformation(e, "Chat with code {code} was not found", request.Code);
+            logger.LogInformation(e, "Chat with id {id} was not found", request.ChatId);
             throw new RpcException(
-                new Status(StatusCode.NotFound, $"Chat with code {request.Code} was not found")
+                new Status(StatusCode.NotFound, $"Chat with id {request.ChatId} was not found")
             );
         }
 
