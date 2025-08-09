@@ -16,7 +16,6 @@ public static class Extensions
 {
     public static void AddApplicationServices(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
         builder.Services.AddExceptionHandler<InternalServerExceptionHandler>();
 
         builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("MinioOptions"));
