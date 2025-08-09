@@ -14,11 +14,12 @@ public class MessageRepository(MessageContext context) : IMessageRepository
         context.Messages.Add(message);
     }
 
-    public async Task<Domain.Entities.Message> FindByIdAsync(long id)
+    public async Task<Domain.Entities.Message> FindByIdAsync(Guid chatId, long id)
     {
         return await ExcludeDeleted(context.Messages)
                 .Include(m => m.Attachments)
-                .FirstOrDefaultAsync(m => m.Id == id) ?? throw new EntityNotFoundException();
+                .FirstOrDefaultAsync(m => m.Id == id && m.ChatId == chatId)
+            ?? throw new EntityNotFoundException();
     }
 
     public async Task<IList<Domain.Entities.Message>> GetChatMessagesAsync(

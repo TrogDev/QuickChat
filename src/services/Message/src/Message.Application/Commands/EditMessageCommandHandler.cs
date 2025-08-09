@@ -19,7 +19,10 @@ public class EditMessageCommandHandler(
 
     public async Task Handle(EditMessageCommand request, CancellationToken cancellationToken)
     {
-        Domain.Entities.Message message = await repository.FindByIdAsync(request.Id);
+        Domain.Entities.Message message = await repository.FindByIdAsync(
+            request.ChatId,
+            request.Id
+        );
 
         IList<MessageAttachment> attachments;
 

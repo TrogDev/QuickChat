@@ -57,14 +57,14 @@ message AddMessageRequest {
 
 message EditMessageRequest {
     int64 id = 1;
-    string text = 2;
-    repeated string attachment_ids = 3;
-    string actor_id = 4;
+    string chat_id = 2;
+    string text = 3;
+    repeated string attachment_ids = 4;
+    string actor_id = 5;
 }
 
 message DeleteMessageRequest {
     int64 id = 1;
-    string actor_id = 2;
+    string chat_id = 2;
+    string actor_id = 3;
 }
-
-

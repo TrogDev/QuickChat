@@ -10,10 +10,11 @@ public interface IMessageRepository : IRepository<Domain.Entities.Message>
     /// Retrieves a message by its Id field.
     /// Deleted messages are not included.
     /// </summary>
+    /// <param name="chatId">The chat id the message belongs to.</param>
     /// <param name="id">The message id.</param>
     /// <returns>The message entity matching the id.</returns>
     /// <exception cref="EntityNotFoundException">Thrown if a message is not found.</exception>
-    Task<Domain.Entities.Message> FindByIdAsync(long id);
+    Task<Domain.Entities.Message> FindByIdAsync(Guid chatId, long id);
 
     /// <summary>
     /// Retrieves a list of messages from a chat, ordered from newest to oldest.

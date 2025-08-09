@@ -10,7 +10,10 @@ public class DeleteMessageCommandHandler(IMessageRepository repository)
 
     public async Task Handle(DeleteMessageCommand request, CancellationToken cancellationToken)
     {
-        Domain.Entities.Message message = await repository.FindByIdAsync(request.Id);
+        Domain.Entities.Message message = await repository.FindByIdAsync(
+            request.ChatId,
+            request.Id
+        );
 
         if (request.ActorId == null)
         {

@@ -57,6 +57,7 @@ public class MessageService(ISender mediator, ILogger<MessageService> logger) : 
         EditMessageCommand command =
             new(
                 request.Id,
+                ParseGuid(request.ChatId, "chat_id"),
                 request.Text,
                 request.AttachmentIds.Select(id => ParseGuid(id, "attachment_ids")),
                 ParseGuid(request.ActorId, "actor_id")
@@ -97,7 +98,12 @@ public class MessageService(ISender mediator, ILogger<MessageService> logger) : 
         ServerCallContext context
     )
     {
-        DeleteMessageCommand command = new(request.Id, ParseGuid(request.ActorId, "actor_id"));
+        DeleteMessageCommand command =
+            new(
+                request.Id,
+                ParseGuid(request.ChatId, "chat_id"),
+                ParseGuid(request.ActorId, "actor_id")
+            );
 
         try
         {
