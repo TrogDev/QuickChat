@@ -19,17 +19,7 @@ public class AddMessageCommandHandler(
 
     public async Task Handle(AddMessageCommand request, CancellationToken cancellationToken)
     {
-        IList<MessageAttachment> attachments;
-
-        try
-        {
-            attachments = await attachmentService.GetAttachments(request.AttachmentIds);
-        }
-        catch (AttachmentServiceException e)
-        {
-            logger.LogError(e, "Failed to get attachments from Attachment Service");
-            throw;
-        }
+        IList<MessageAttachment> attachments = await GetAttachments(request.AttachmentIds);
 
         Domain.Entities.Message message = Domain.Entities.Message.Create(
             request.ChatId,
@@ -41,5 +31,23 @@ public class AddMessageCommandHandler(
         repository.Add(message);
 
         await repository.UnitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    private async ValueTask<IList<MessageAttachment>> GetAttachments(IEnumerable<Guid> ids)
+    {
+        if (!ids.Any())
+        {
+            return [];
+        }
+
+        try
+        {
+            return await attachmentService.GetAttachments(ids);
+        }
+        catch (AttachmentServiceException e)
+        {
+            logger.LogError(e, "Failed to get attachments from Attachment Service");
+            throw;
+        }
     }
 }
