@@ -14,7 +14,8 @@ public static class MappingExtensions
                 Id = chat.Id.ToString(),
                 Name = chat.Name,
                 Code = chat.Code,
-                CreatedAt = Timestamp.FromDateTime(chat.CreatedAt)
+                CreatedAt = Timestamp.FromDateTime(chat.CreatedAt),
+                LifeTimeSeconds = chat.LifeTimeSeconds
             };
         chatProto.Participants.AddRange(chat.Participants.Select(p => p.ToProto()));
         return chatProto;
