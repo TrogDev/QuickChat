@@ -1,3 +1,4 @@
+using Google.Protobuf.WellKnownTypes;
 using QuickChat.Chat.API.Grpc;
 using QuickChat.Chat.Domain.Entities;
 
@@ -12,7 +13,8 @@ public static class MappingExtensions
             {
                 Id = chat.Id.ToString(),
                 Name = chat.Name,
-                Code = chat.Code
+                Code = chat.Code,
+                CreatedAt = Timestamp.FromDateTime(chat.CreatedAt)
             };
         chatProto.Participants.AddRange(chat.Participants.Select(p => p.ToProto()));
         return chatProto;
