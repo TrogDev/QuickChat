@@ -1,7 +1,10 @@
 using QuickChat.Authentication;
 using QuickChat.Gateway.REST.Exceptions.Handlers;
+using QuickChat.Gateway.REST.IntegrationEvents.EventHandlers;
+using QuickChat.Gateway.REST.IntegrationEvents.Events;
 using QuickChat.Gateway.REST.Options;
 using QuickChat.Gateway.REST.Services;
+using StackExchange.Redis;
 
 namespace QuickChat.Gateway.REST.Extensions;
 
@@ -56,6 +59,16 @@ public static class Extensions
         builder.Services.AddScoped<IMessageService, MessageService>();
         builder.Services.AddScoped<ISystemMessageService, SystemMessageService>();
 
+        builder
+            .Services.AddSignalR()
+            .AddStackExchangeRedis(
+                builder.Configuration.GetConnectionString("Redis")!,
+                o =>
+                {
+                    o.Configuration.ChannelPrefix = RedisChannel.Literal("QuickChatGateway");
+                }
+            );
+
         builder.AddDefaultAuthentication();
         builder.AddRabbitMqEventBus("EventBus").AddEventBusSubscriptions();
     }
@@ -71,5 +84,27 @@ public static class Extensions
         );
     }
 
-    private static void AddEventBusSubscriptions(this IEventBusBuilder eventBus) { }
+    private static void AddEventBusSubscriptions(this IEventBusBuilder eventBus)
+    {
+        eventBus.AddSubscription<
+            UserJoinedChatIntegrationEvent,
+            UserJoinedChatIntegrationEventHandler
+        >();
+        eventBus.AddSubscription<
+            MessageAddedIntegrationEvent,
+            MessageAddedIntegrationEventHandler
+        >();
+        eventBus.AddSubscription<
+            MessageEditedIntegrationEvent,
+            MessageEditedIntegrationEventHandler
+        >();
+        eventBus.AddSubscription<
+            MessageDeletedIntegrationEvent,
+            MessageDeletedIntegrationEventHandler
+        >();
+        eventBus.AddSubscription<
+            SystemMessageAddedIntegrationEvent,
+            SystemMessageAddedIntegrationEventHandler
+        >();
+    }
 }
