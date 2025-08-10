@@ -23,7 +23,7 @@ public class UserJoinedChatIntegrationEventHandler(
         );
 
         AddSystemMessageCommand command =
-            new(@event.ChatId, $"User \"{@event.UserName}\" has joined the chat!");
+            new(@event.ChatId, $"User \"{@event.ChatParticipant.Name}\" has joined the chat!");
 
         await mediator.Send(command);
     }

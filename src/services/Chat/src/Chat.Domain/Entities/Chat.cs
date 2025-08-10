@@ -20,7 +20,9 @@ public class Chat : Entity<Guid>, IAggregateRoot
 
         ChatParticipant participant = new() { UserId = userId, Name = name };
         Participants.Add(participant);
-        AddDomainEvent(new UserJoinedChatDomainEvent() { Chat = this, User = participant });
+        AddDomainEvent(
+            new UserJoinedChatDomainEvent() { Chat = this, ChatParticipant = participant }
+        );
         return participant;
     }
 

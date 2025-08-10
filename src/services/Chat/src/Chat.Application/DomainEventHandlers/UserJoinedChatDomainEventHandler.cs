@@ -1,5 +1,6 @@
 using MediatR;
 using QuickChat.Chat.Application.IntegrationEvents.Events;
+using QuickChat.Chat.Domain.Entities;
 using QuickChat.Chat.Domain.Events;
 using QuickChat.EventBus.Abstractions;
 
@@ -19,8 +20,12 @@ public class UserJoinedChatDomainEventHandler(IEventBus eventBus)
             new()
             {
                 ChatId = notification.Chat.Id,
-                UserId = notification.User.UserId,
-                UserName = notification.User.Name
+                ChatParticipant = new ChatParticipant()
+                {
+                    Id = notification.ChatParticipant.Id,
+                    UserId = notification.ChatParticipant.UserId,
+                    Name = notification.ChatParticipant.Name
+                }
             };
         await eventBus.PublishAsync(integrationEvent);
     }
