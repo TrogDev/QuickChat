@@ -29,23 +29,34 @@ public static class Extensions
 
     private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
     {
+        string otlpEndpoint = builder.Configuration.GetValue<string>("OpenTelemetry:OtlpEndpoint")!;
+        string serviceName = "Identity";
+
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
-        builder.Logging.AddOpenTelemetry(o =>
+        builder.Logging.AddOpenTelemetry(loggerOptions =>
         {
-            o.IncludeFormattedMessage = true;
-            o.IncludeScopes = true;
-            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Identity"));
-            o.AddConsoleExporter();
+            loggerOptions.IncludeFormattedMessage = true;
+            loggerOptions.IncludeScopes = true;
+            loggerOptions.SetResourceBuilder(
+                ResourceBuilder.CreateDefault().AddService(serviceName)
+            );
+            loggerOptions.AddOtlpExporter(otlpOptions =>
+            {
+                otlpOptions.Endpoint = new Uri(otlpEndpoint);
+            });
         });
         builder
             .Services.AddOpenTelemetry()
             .WithTracing(tracerProviderBuilder =>
             {
                 tracerProviderBuilder
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Identity"))
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
                     .AddAspNetCoreInstrumentation()
                     .AddSource("MediatorSender")
-                    .AddConsoleExporter();
+                    .AddOtlpExporter(otlpOptions =>
+                    {
+                        otlpOptions.Endpoint = new Uri(otlpEndpoint);
+                    });
             });
     }
 }

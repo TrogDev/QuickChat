@@ -62,25 +62,36 @@ public static class Extensions
 
     private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
     {
+        string otlpEndpoint = builder.Configuration.GetValue<string>("OpenTelemetry:OtlpEndpoint")!;
+        string serviceName = "Message";
+
         builder.Logging.SetMinimumLevel(LogLevel.Debug);
-        builder.Logging.AddOpenTelemetry(o =>
+        builder.Logging.AddOpenTelemetry(loggerOptions =>
         {
-            o.IncludeFormattedMessage = true;
-            o.IncludeScopes = true;
-            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Message"));
-            o.AddConsoleExporter();
+            loggerOptions.IncludeFormattedMessage = true;
+            loggerOptions.IncludeScopes = true;
+            loggerOptions.SetResourceBuilder(
+                ResourceBuilder.CreateDefault().AddService(serviceName)
+            );
+            loggerOptions.AddOtlpExporter(otlpOptions =>
+            {
+                otlpOptions.Endpoint = new Uri(otlpEndpoint);
+            });
         });
         builder
             .Services.AddOpenTelemetry()
             .WithTracing(tracerProviderBuilder =>
             {
                 tracerProviderBuilder
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Message"))
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName))
                     .AddAspNetCoreInstrumentation()
                     .AddNpgsql()
                     .AddHttpClientInstrumentation()
                     .AddSource("MediatorSender")
-                    .AddConsoleExporter();
+                    .AddOtlpExporter(otlpOptions =>
+                    {
+                        otlpOptions.Endpoint = new Uri(otlpEndpoint);
+                    });
             });
     }
 }
