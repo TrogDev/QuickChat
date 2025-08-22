@@ -1,5 +1,9 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using QuickChat.Chat.Application.Behaviors;
 using QuickChat.Chat.Application.Commands;
 using QuickChat.Chat.Application.Queries;
@@ -35,5 +39,30 @@ public static class Extensions
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidatorBehavior<,>));
         });
+
+        builder.AddLoggingInfrastructure();
+    }
+
+    private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
+    {
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeFormattedMessage = true;
+            o.IncludeScopes = true;
+            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Chat"));
+            o.AddConsoleExporter();
+        });
+        builder
+            .Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Chat"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddNpgsql()
+                    .AddSource("MediatorSender")
+                    .AddConsoleExporter();
+            });
     }
 }

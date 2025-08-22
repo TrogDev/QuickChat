@@ -1,3 +1,6 @@
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using QuickChat.Authentication;
 using QuickChat.Gateway.REST.Exceptions.Handlers;
 using QuickChat.Gateway.REST.IntegrationEvents.EventHandlers;
@@ -71,6 +74,8 @@ public static class Extensions
 
         builder.AddDefaultAuthentication();
         builder.AddRabbitMqEventBus("EventBus").AddEventBusSubscriptions();
+
+        builder.AddLoggingInfrastructure();
     }
 
     private static void ConfigureServiceOptions<TOptions>(
@@ -106,5 +111,29 @@ public static class Extensions
             SystemMessageAddedIntegrationEvent,
             SystemMessageAddedIntegrationEventHandler
         >();
+    }
+
+    private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
+    {
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeFormattedMessage = true;
+            o.IncludeScopes = true;
+            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Gateway.REST"));
+            o.AddConsoleExporter();
+        });
+        builder
+            .Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Gateway.REST"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddGrpcClientInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddConsoleExporter();
+            });
+        ;
     }
 }

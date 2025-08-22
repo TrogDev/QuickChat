@@ -20,6 +20,16 @@ public class ValidatorBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken
     )
     {
+        if (validators.Any())
+        {
+            Validate(request);
+        }
+
+        return await next();
+    }
+
+    private void Validate(TRequest request)
+    {
         string typeName = request.GetGenericTypeName();
 
         logger.LogInformation("Validating command {CommandType}", typeName);
@@ -32,7 +42,7 @@ public class ValidatorBehavior<TRequest, TResponse>(
 
         if (failures.Count != 0)
         {
-            logger.LogWarning(
+            logger.LogInformation(
                 "Validation errors - {CommandType} - Command: {@Command} - Errors: {@ValidationErrors}",
                 typeName,
                 request,
@@ -41,7 +51,5 @@ public class ValidatorBehavior<TRequest, TResponse>(
 
             throw new ValidationException("Validation exception", failures);
         }
-
-        return await next();
     }
 }

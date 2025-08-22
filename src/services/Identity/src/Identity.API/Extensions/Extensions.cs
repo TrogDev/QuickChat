@@ -1,3 +1,6 @@
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using QuickChat.Identity.Application.Behaviors;
 using QuickChat.Identity.Application.Commands;
 using QuickChat.Identity.Application.Services;
@@ -20,5 +23,29 @@ public static class Extensions
             cfg.RegisterServicesFromAssembly(typeof(CreateAnonymousUserCommandHandler).Assembly);
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
+
+        builder.AddLoggingInfrastructure();
+    }
+
+    private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
+    {
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeFormattedMessage = true;
+            o.IncludeScopes = true;
+            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Identity"));
+            o.AddConsoleExporter();
+        });
+        builder
+            .Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Identity"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddSource("MediatorSender")
+                    .AddConsoleExporter();
+            });
     }
 }

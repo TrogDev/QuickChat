@@ -1,5 +1,9 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using QuickChat.EFHelper;
 using QuickChat.Message.Application.Behaviors;
 using QuickChat.Message.Application.Commands;
@@ -44,6 +48,8 @@ public static class Extensions
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(ValidatorBehavior<,>));
         });
+
+        builder.AddLoggingInfrastructure();
     }
 
     private static void AddEventBusSubscriptions(this IEventBusBuilder eventBus)
@@ -52,5 +58,29 @@ public static class Extensions
             UserJoinedChatIntegrationEvent,
             UserJoinedChatIntegrationEventHandler
         >();
+    }
+
+    private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
+    {
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeFormattedMessage = true;
+            o.IncludeScopes = true;
+            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Message"));
+            o.AddConsoleExporter();
+        });
+        builder
+            .Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Message"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddNpgsql()
+                    .AddHttpClientInstrumentation()
+                    .AddSource("MediatorSender")
+                    .AddConsoleExporter();
+            });
     }
 }

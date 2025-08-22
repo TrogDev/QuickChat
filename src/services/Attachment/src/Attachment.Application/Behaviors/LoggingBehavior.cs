@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using QuickChat.Logging;
@@ -10,6 +11,7 @@ public class LoggingBehavior<TRequest, TResponse>(
     where TRequest : IRequest<TResponse>
 {
     private readonly ILogger<LoggingBehavior<TRequest, TResponse>> logger = logger;
+    private readonly ActivitySource activitySource = new("MediatorSender");
 
     public async Task<TResponse> Handle(
         TRequest request,
@@ -17,12 +19,27 @@ public class LoggingBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken
     )
     {
+        using Activity? activity = activitySource.StartActivity(
+            $"{request.GetGenericTypeName()} Handle"
+        );
+
         logger.LogInformation(
             "Handling command {CommandName} ({@Command})",
             request.GetGenericTypeName(),
             request
         );
-        TResponse response = await next();
+
+        TResponse response;
+        try
+        {
+            response = await next();
+        }
+        catch (Exception e)
+        {
+            activity.SetExceptionTags(e);
+            throw;
+        }
+
         logger.LogInformation(
             "Command {CommandName} handled - response: {@Response}",
             request.GetGenericTypeName(),

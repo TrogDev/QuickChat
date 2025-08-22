@@ -5,20 +5,6 @@ using QuickChat.Gateway.REST.Hubs;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(
-        "AllowAll",
-        policy =>
-        {
-            policy
-                .WithOrigins("http://127.0.0.1:5500")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        }
-    );
-});
 builder.AddApplicationServices();
 builder.Services.AddApiVersioning(o =>
 {
@@ -27,7 +13,6 @@ builder.Services.AddApiVersioning(o =>
 
 WebApplication app = builder.Build();
 app.UseExceptionHandler(o => { });
-app.UseCors("AllowAll");
 
 IVersionedEndpointRouteBuilder gateway = app.NewVersionedApi("Gateway");
 gateway.MapIdentityApiV1();

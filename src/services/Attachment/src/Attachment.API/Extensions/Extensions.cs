@@ -1,5 +1,9 @@
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using QuickChat.Attachment.API.Exceptions.Handlers;
 using QuickChat.Attachment.Application.Behaviors;
 using QuickChat.Attachment.Application.Commands;
@@ -51,5 +55,30 @@ public static class Extensions
             cfg.RegisterServicesFromAssembly(typeof(UploadAttachmentCommand).Assembly);
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
         });
+
+        builder.AddLoggingInfrastructure();
+    }
+
+    private static void AddLoggingInfrastructure(this IHostApplicationBuilder builder)
+    {
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.AddOpenTelemetry(o =>
+        {
+            o.IncludeFormattedMessage = true;
+            o.IncludeScopes = true;
+            o.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Attachment"));
+            o.AddConsoleExporter();
+        });
+        builder
+            .Services.AddOpenTelemetry()
+            .WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Attachment"))
+                    .AddAspNetCoreInstrumentation()
+                    .AddNpgsql()
+                    .AddSource("MediatorSender")
+                    .AddConsoleExporter();
+            });
     }
 }
