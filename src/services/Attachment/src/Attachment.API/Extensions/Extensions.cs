@@ -34,10 +34,9 @@ public static class Extensions
                 {
                     ServiceURL = minioOptions.Url,
                     ForcePathStyle = true, // Required for MinIO
-                    AuthenticationRegion = minioOptions.AuthenticationRegion
                 };
 
-            return new AmazonS3Client(minioOptions.Login, minioOptions.Password, config);
+            return new AmazonS3Client(minioOptions.User, minioOptions.Password, config);
         });
 
         builder.Services.AddTransient<IFileUploader, MinioFileUploader>();
