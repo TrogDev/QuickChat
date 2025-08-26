@@ -8,7 +8,7 @@ namespace QuickChat.Message.Application.Behaviors;
 public class LoggingBehavior<TRequest, TResponse>(
     ILogger<LoggingBehavior<TRequest, TResponse>> logger
 ) : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IRequest<TResponse>
+    where TRequest : notnull
 {
     private readonly ILogger<LoggingBehavior<TRequest, TResponse>> logger = logger;
     private readonly ActivitySource activitySource = new("MediatorSender");
@@ -40,11 +40,7 @@ public class LoggingBehavior<TRequest, TResponse>(
             throw;
         }
 
-        logger.LogInformation(
-            "Command {CommandName} handled - response: {@Response}",
-            request.GetGenericTypeName(),
-            response
-        );
+        logger.LogInformation("Command {CommandName} handled", request.GetGenericTypeName());
 
         return response;
     }
