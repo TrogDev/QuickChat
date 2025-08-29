@@ -1,0 +1,247 @@
+# minio
+apiVersion: v1
+kind: Secret
+metadata:
+  name: attachment-minio-secrets
+type: Opaque
+stringData:
+  MINIO_BUCKET_NAME: attachments
+  MINIO_USER: quickchat
+  MINIO_PASSWORD: kCApYGmeBu
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: attachment-minio
+spec:
+  selector:
+    matchLabels:
+      app: attachment-minio
+  serviceName: "attachment-minio"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: attachment-minio
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+          args:
+            - server
+            - /data
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-minio-secrets
+                  key: MINIO_USER
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-minio-secrets
+                  key: MINIO_PASSWORD
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: attachment-minio-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: attachment-minio-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: attachment-minio
+spec:
+  selector:
+    app: attachment-minio
+  ports:
+    - port: 9000
+      targetPort: 9000
+  type: ClusterIP
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: attachment-minio-init-job
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mc
+          image: minio/mc:RELEASE.2025-07-21T05-28-08Z
+          command:
+            - sh
+            - -c
+            - |
+              until mc alias set quickchat http://attachment-minio:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD; do
+                echo "Waiting to set alias..."
+                sleep 2
+              done
+
+              until mc ready quickchat; do
+                echo "Waiting for MinIO to be ready..."
+                sleep 2
+              done
+
+              mc mb quickchat/$MINIO_BUCKET_NAME || true
+              mc anonymous set download quickchat/$MINIO_BUCKET_NAME
+          env:
+            - name: MINIO_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-minio-secrets
+                  key: MINIO_BUCKET_NAME
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-minio-secrets
+                  key: MINIO_USER
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-minio-secrets
+                  key: MINIO_PASSWORD
+#postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: attachment-postgres-secrets
+type: Opaque
+stringData:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: attachment-postgres
+spec:
+  serviceName: "attachment-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attachment-postgres
+  template:
+    metadata:
+      labels:
+        app: attachment-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-postgres-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: attachment-postgres-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: attachment-postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: attachment-postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: attachment-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: attachment-postgres
+# ASP.NET backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attachment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attachment-service
+  template:
+    metadata:
+      labels:
+        app: attachment-service
+    spec:
+      initContainers:
+        - name: attachment-service-wait-for-db
+          image: postgres:15
+          command: ['sh', '-c', 'until pg_isready -h attachment-postgres -p 5432; do echo "Waiting for DB..."; sleep 2; done']
+      containers:
+      - name: attachment-service
+        image: trogdev/quickchat-attachment-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: MinioOptions__BucketName
+            valueFrom:
+              secretKeyRef:
+                name: attachment-minio-secrets
+                key: MINIO_BUCKET_NAME
+          - name: MinioOptions__User
+            valueFrom:
+              secretKeyRef:
+                name: attachment-minio-secrets
+                key: MINIO_USER
+          - name: MinioOptions__Password
+            valueFrom:
+              secretKeyRef:
+                name: attachment-minio-secrets
+                key: MINIO_PASSWORD
+          - name: MinioOptions__Url
+            value: "http://attachment-minio:9000"
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: attachment-postgres-secrets
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: attachment-postgres-secrets
+                key: POSTGRES_PASSWORD
+          - name: ConnectionStrings__PostgreSQL
+            value: "server=attachment-postgres;database=attachments;uid=$(POSTGRES_USER);pwd=$(POSTGRES_PASSWORD);"
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: attachment-service
+spec:
+  type: ClusterIP
+  selector:
+    app: attachment-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
