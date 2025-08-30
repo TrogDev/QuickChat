@@ -1,0 +1,68 @@
+# ASP.NET backend
+apiVersion: v1
+kind: Secret
+metadata:
+  name: identity-service-secrets
+type: Opaque
+stringData:
+  ISSUER: quickchat
+  AUDIENCE: quickchat
+  ACCESS_LIFE_TIME_DAYS: "180"
+  # Just an example; change in production
+  PRIVATE_KEY: "MIIEpAIBAAKCAQEAoOCVENHqKLV4TFZPI22tMWAxLFGgDhmavOe0oeFw9zABxu6X2pn0qDf/7Y+/ylDRV+Zi9rIAdIz8xmghlWeCToO/B0cPjCsGRRsgBI4f780/4djLbVpO68RTBL97REzuvWD92rGL3ihVmHqz+ATnDNquLNOvs05+CpnnoPyCFo+WokT+21rqzbYA8juLWDAn230r1EBgqyeX4eWpBeFqY/SzZCc4RrANVdNtjvnwPNhP3EOusoX3/ZfsK2Q0duRjNJ8mlF4BlNHQQL/C9HVFNhsYGjZSWu87y8nMfRI1Cv6O3jvvOlnDZhIhkIphWR04aUWpsC186ogN9e/bMhyF0wIDAQABAoIBAC6eliPvKLOOTuOUOU+zdzZxQR6uMrsTSWeHn60vhsxi8Yjj2EaFScQ7oiMF/paSz+9weGozz/T2bEPUpjLE8ZpuDDwAKC2+xAzfnOolA3U63dHFQMIaIveoh0Q/dummf6KKilXHEJiayJ8so51yUkBD2Kht2aMU0mqhCeH5enstwELgUeTXmOZAkkFuNEFn7dcd9lsvbRmbvVHXY3TBykr8wa+v2tUoO7AKWxammxi2a3LGj625bcpIOYb2PWDy/4fvZoPleCq8rBGDdJPG2BDXre1yS0ZDOgM+NbNqnMDh8hZCmXwhGTDhn46lhyzg0lJckEbypR6BoHMAjS27N7ECgYEA1JAvEGTXHIvz4E3Hj2NymQkMW8O9YsJdo1h96GfEM8KXyvBSd1nHEvWK3/OZFiRV6TyPNjIVMPjgF0l81jfUcG5tcDcBWvAbU4O+fofUvZRwQDSdNdw9usJ4GvG7cytYeGOtfRT+5hXn1wf9k9BbvC8o7nKCKE8TarXhV/CxzeMCgYEAwcCNchxC9VD9o+2UwDnVweVjml22g6JmZR/9uUTsGXFofdJq7JKU5MclgsoVOjcdZuXFu2r8coEn54ygpGmV8ZbA1XqGhltRZhVIhROfH5DLT/WATIW5GJ2/fI+Bs47oyublqb8k1V+1tnENwJFnME6JGYZMjAbtEqNa4S2p61ECgYAvnCfefSetTi+Oov06waSOYHdzKlGGCFDe4Fg7MNrCWSiUnOVrtCEhvvufE7nLOtI/ToApPGiAso3GyX/7nz+m+yTqCHf2PWdxekW1o4jj+ZZ22xIHWVA+P4aVSmWY8zF6raDTLlu1f1yRTknezMFvUgTR+7Xpf2Sy9xAFGXVJzwKBgQC9zvACqRMjlntUu6vtAPua3ylLkaD6pf8f9E4w0QdnCYXvNVMQfa0lzr69uVFAXbwNEO4749x6JHM+ULMTPmjpauFwgX8GYrGEizcnP4i0eLnklEJjNOGW7vsngML0b/04wSieuaXQ7tlqaKirTQbE+TswaTPWPfbEOooObRi4cQKBgQDG47Keb1vZKIrNzi4xr/DK32f5oJMBUtyii/1GtvUN7G2fwnaCf4TzivQxCNknCCoRNpGxhzGFUK8LsTdn14ORMKmcV0UFMnwO/lKW2zCzgpmSjT6RZ8Dpl8nQEZDGULhCC8YEhYlWvPRmqUUwNg8+1THfZ9LIwYEV71klfOHFGQ=="
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-service
+  template:
+    metadata:
+      labels:
+        app: identity-service
+    spec:
+      containers:
+      - name: identity-service
+        image: trogdev/quickchat-identity-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: Identity__Issuer
+            valueFrom:
+              secretKeyRef:
+                name: identity-service-secrets
+                key: ISSUER
+          - name: Identity__Audience
+            valueFrom:
+              secretKeyRef:
+                name: identity-service-secrets
+                key: AUDIENCE
+          - name: Identity__AccessLifeTimeDays
+            valueFrom:
+              secretKeyRef:
+                name: identity-service-secrets
+                key: ACCESS_LIFE_TIME_DAYS
+          - name: Identity__PrivateKey
+            valueFrom:
+              secretKeyRef:
+                name: identity-service-secrets
+                key: PRIVATE_KEY
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-service
+spec:
+  type: ClusterIP
+  selector:
+    app: identity-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
