@@ -1,0 +1,130 @@
+#postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: chat-postgres-secrets
+type: Opaque
+stringData:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: chat-postgres
+spec:
+  serviceName: "chat-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-postgres
+  template:
+    metadata:
+      labels:
+        app: chat-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: chat-postgres-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: chat-postgres-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: chat-postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: chat-postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: chat-postgres
+# ASP.NET backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      initContainers:
+        - name: chat-service-wait-for-db
+          image: postgres:15
+          command: ['sh', '-c', 'until pg_isready -h chat-postgres -p 5432; do echo "Waiting for DB..."; sleep 2; done']
+      containers:
+      - name: chat-service
+        image: trogdev/quickchat-chat-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: chat-postgres-secrets
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: chat-postgres-secrets
+                key: POSTGRES_PASSWORD
+          - name: RABBITMQ_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-rabbitmq-secrets
+                key: RABBITMQ_DEFAULT_USER
+          - name: RABBITMQ_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-rabbitmq-secrets
+                key: RABBITMQ_DEFAULT_PASS
+          - name: ConnectionStrings__PostgreSQL
+            value: "server=chat-postgres;database=chat;uid=$(POSTGRES_USER);pwd=$(POSTGRES_PASSWORD);"
+          - name: ConnectionStrings__EventBus
+            value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@attachment-rabbitmq:5672/"
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+spec:
+  type: ClusterIP
+  selector:
+    app: chat-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
