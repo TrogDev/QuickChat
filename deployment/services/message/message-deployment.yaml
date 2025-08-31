@@ -1,0 +1,132 @@
+#postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: message-postgres-secrets
+type: Opaque
+stringData:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: message-postgres
+spec:
+  serviceName: "message-postgres"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message-postgres
+  template:
+    metadata:
+      labels:
+        app: message-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: message-postgres-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: message-postgres-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: message-postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: message-postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: message-postgres
+# ASP.NET backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: message-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: message-service
+  template:
+    metadata:
+      labels:
+        app: message-service
+    spec:
+      initContainers:
+        - name: message-service-wait-for-db
+          image: postgres:15
+          command: ['sh', '-c', 'until pg_isready -h message-postgres -p 5432; do echo "Waiting for DB..."; sleep 2; done']
+      containers:
+      - name: message-service
+        image: trogdev/quickchat-message-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: message-postgres-secrets
+                key: POSTGRES_USER
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: message-postgres-secrets
+                key: POSTGRES_PASSWORD
+          - name: RABBITMQ_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-rabbitmq-secrets
+                key: RABBITMQ_DEFAULT_USER
+          - name: RABBITMQ_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-rabbitmq-secrets
+                key: RABBITMQ_DEFAULT_PASS
+          - name: ConnectionStrings__PostgreSQL
+            value: "server=message-postgres;database=message;uid=$(POSTGRES_USER);pwd=$(POSTGRES_PASSWORD);"
+          - name: ConnectionStrings__EventBus
+            value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@attachment-rabbitmq:5672/"
+          - name: Services__Attachment__Url
+            value: "http://attachment-service"
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: message-service
+spec:
+  type: ClusterIP
+  selector:
+    app: message-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
