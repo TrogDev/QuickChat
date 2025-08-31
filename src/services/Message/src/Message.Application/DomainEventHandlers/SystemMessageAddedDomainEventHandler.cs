@@ -10,13 +10,14 @@ public class SystemMessageAddedDomainEventHandler(IEventBus eventBus)
 {
     private readonly IEventBus eventBus = eventBus;
 
-    public async Task Handle(
+    public Task Handle(
         SystemMessageAddedDomainEvent notification,
         CancellationToken cancellationToken
     )
     {
         SystemMessageAddedIntegrationEvent integrationEvent =
             new() { Message = notification.Message };
-        await eventBus.PublishAsync(integrationEvent);
+        eventBus.PublishAsync(integrationEvent);
+        return Task.CompletedTask;
     }
 }

@@ -11,10 +11,7 @@ public class UserJoinedChatDomainEventHandler(IEventBus eventBus)
 {
     private readonly IEventBus eventBus = eventBus;
 
-    public async Task Handle(
-        UserJoinedChatDomainEvent notification,
-        CancellationToken cancellationToken
-    )
+    public Task Handle(UserJoinedChatDomainEvent notification, CancellationToken cancellationToken)
     {
         UserJoinedChatIntegrationEvent integrationEvent =
             new()
@@ -27,6 +24,7 @@ public class UserJoinedChatDomainEventHandler(IEventBus eventBus)
                     Name = notification.ChatParticipant.Name
                 }
             };
-        await eventBus.PublishAsync(integrationEvent);
+        eventBus.PublishAsync(integrationEvent);
+        return Task.CompletedTask;
     }
 }

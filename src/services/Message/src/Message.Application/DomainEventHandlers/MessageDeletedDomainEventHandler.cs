@@ -10,12 +10,10 @@ public class MessageDeletedDomainEventHandler(IEventBus eventBus)
 {
     private readonly IEventBus eventBus = eventBus;
 
-    public async Task Handle(
-        MessageDeletedDomainEvent notification,
-        CancellationToken cancellationToken
-    )
+    public Task Handle(MessageDeletedDomainEvent notification, CancellationToken cancellationToken)
     {
         MessageDeletedIntegrationEvent integrationEvent = new() { Message = notification.Message };
-        await eventBus.PublishAsync(integrationEvent);
+        eventBus.PublishAsync(integrationEvent);
+        return Task.CompletedTask;
     }
 }
