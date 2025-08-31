@@ -112,7 +112,7 @@ spec:
           - name: ConnectionStrings__PostgreSQL
             value: "server=message-postgres;database=message;uid=$(POSTGRES_USER);pwd=$(POSTGRES_PASSWORD);"
           - name: ConnectionStrings__EventBus
-            value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@attachment-rabbitmq:5672/"
+            value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@quickchat-rabbitmq:5672/"
           - name: Services__Attachment__Url
             value: "http://attachment-service"
           - name: ASPNETCORE_ENVIRONMENT
