@@ -1,0 +1,136 @@
+# Redis
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gateway-redis-secrets
+type: Opaque
+stringData:
+  REDIS_PASSWORD: quickchat
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gateway-redis
+spec:
+  serviceName: "gateway-redis"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-redis
+  template:
+    metadata:
+      labels:
+        app: gateway-redis
+    spec:
+      containers:
+        - name: gateway-redis
+          image: redis:7.4-alpine
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          ports:
+            - containerPort: 6379
+          command: ["redis-server"]
+          args:
+            - "--save ''"
+            - "--requirepass $(REDIS_PASSWORD)"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gateway-redis-secrets
+                  key: REDIS_PASSWORD
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-redis
+spec:
+  selector:
+    app: gateway-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP
+# ASP.NET backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: trogdev/quickchat-gateway:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: RABBITMQ_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-rabbitmq-secrets
+                key: RABBITMQ_DEFAULT_USER
+          - name: RABBITMQ_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-rabbitmq-secrets
+                key: RABBITMQ_DEFAULT_PASS
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: gateway-redis-secrets
+                key: REDIS_PASSWORD
+          - name: ConnectionStrings__Redis
+            value: "gateway-redis:6379,password=$(REDIS_PASSWORD)"
+          - name: ConnectionStrings__EventBus
+            value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@quickchat-rabbitmq:5672/"
+          - name: Identity__Url
+            value: "http://identity-service"
+          - name: Identity__Audience
+            value: "quickchat"
+          - name: Services__Attachment__Url
+            value: "http://attachment-service"
+          - name: Services__Identity__Url
+            value: "http://identity-service"
+          - name: Services__Chat__Url
+            value: "http://chat-service"
+          - name: Services__Message__Url
+            value: "http://message-service"
+          - name: ASPNETCORE_ENVIRONMENT
+            value: "Production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
