@@ -31,9 +31,8 @@ public static class Extensions
         builder.Services.AddScoped<ISystemMessageRepository, SystemMessageRepository>();
         builder.AddRabbitMqEventBus("EventBus").AddEventBusSubscriptions();
 
-        builder.Services.Configure<AttachmentOptions>(
-            builder.Configuration.GetSection("Attachment")
-        );
+        builder.ConfigureServiceOptions<AttachmentOptions>("Attachment");
+
         builder.Services.AddHttpClient<IAttachmentService, AttachmentService>();
 
         builder.Services.AddSingleton<IValidator<AddMessageCommand>, AddMessageCommandValidator>();
@@ -50,6 +49,17 @@ public static class Extensions
         });
 
         builder.AddLoggingInfrastructure();
+    }
+
+    private static void ConfigureServiceOptions<TOptions>(
+        this IHostApplicationBuilder builder,
+        string section
+    )
+        where TOptions : class
+    {
+        builder.Services.Configure<TOptions>(
+            builder.Configuration.GetSection("Services").GetSection(section)
+        );
     }
 
     private static void AddEventBusSubscriptions(this IEventBusBuilder eventBus)
