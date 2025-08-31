@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quickchat-rabbitmq-config
+data:
+  rabbitmq.conf: |
+    listeners.tcp.default = 5672
+    loopback_users.guest = false
+    vm_memory_high_watermark.relative = 0.4
+    disk_free_limit.relative = 1.0
+    cluster_formation.peer_discovery_backend = k8s
+    cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+    cluster_partition_handling = pause_minority
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: quickchat-rabbitmq-secrets
+type: Opaque
+stringData:
+  RABBITMQ_DEFAULT_USER: "quickchat"
+  RABBITMQ_DEFAULT_PASS: "quickchat"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: quickchat-rabbitmq
+spec:
+  serviceName: "quickchat-rabbitmq"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickchat-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: quickchat-rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:4.0.9
+          ports:
+            - name: amqp
+              containerPort: 5672
+          envFrom:
+            - secretRef:
+                name: quickchat-rabbitmq-secrets
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/rabbitmq
+            - name: quickchat-rabbitmq-data
+              mountPath: /var/lib/rabbitmq
+      volumes:
+        - name: config-volume
+          configMap:
+            name: quickchat-rabbitmq-config
+  volumeClaimTemplates:
+    - metadata:
+        name: quickchat-rabbitmq-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quickchat-rabbitmq
+spec:
+  clusterIP: None
+  ports:
+    - port: 5672
+      name: amqp
+  selector:
+    app: quickchat-rabbitmq
