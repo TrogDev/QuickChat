@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using QuickChat.Identity.Infrastructure;
 using QuickChat.Identity.Infrastructure.Services;
 
 namespace QuickChat.Identity.API.Apis;
@@ -31,11 +33,11 @@ public static class DiscoveryApi
         return Results.Ok(new { keys = new[] { jwk } });
     }
 
-    public static IResult GetOpenIdConfiguration()
+    public static IResult GetOpenIdConfiguration([FromServices] IOptions<JwtOptions> options)
     {
         var config = new
         {
-            jwks_uri = "http://localhost:5224/.well-known/jwks",
+            jwks_uri = options.Value.BaseUrl + "/.well-known/jwks",
             id_token_signing_alg_values_supported = new[] { "RS256" },
         };
 
