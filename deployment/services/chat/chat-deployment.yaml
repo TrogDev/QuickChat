@@ -113,6 +113,8 @@ spec:
             value: "server=chat-postgres;database=chat;uid=$(POSTGRES_USER);pwd=$(POSTGRES_PASSWORD);"
           - name: ConnectionStrings__EventBus
             value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@quickchat-rabbitmq:5672/"
+          - name: OpenTelemetry__OtlpEndpoint
+            value: "http://quickchat-otel-collector:4317"
           - name: ASPNETCORE_ENVIRONMENT
             value: "Production"
 ---

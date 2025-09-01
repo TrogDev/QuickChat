@@ -230,6 +230,8 @@ spec:
                 key: POSTGRES_PASSWORD
           - name: ConnectionStrings__PostgreSQL
             value: "server=attachment-postgres;database=attachments;uid=$(POSTGRES_USER);pwd=$(POSTGRES_PASSWORD);"
+          - name: OpenTelemetry__OtlpEndpoint
+            value: "http://quickchat-otel-collector:4317"
           - name: ASPNETCORE_ENVIRONMENT
             value: "Production"
 ---

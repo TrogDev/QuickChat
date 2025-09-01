@@ -115,6 +115,8 @@ spec:
             value: "amqp://$(RABBITMQ_DEFAULT_USER):$(RABBITMQ_DEFAULT_PASS)@quickchat-rabbitmq:5672/"
           - name: Services__Attachment__Url
             value: "http://attachment-service"
+          - name: OpenTelemetry__OtlpEndpoint
+            value: "http://quickchat-otel-collector:4317"
           - name: ASPNETCORE_ENVIRONMENT
             value: "Production"
 ---

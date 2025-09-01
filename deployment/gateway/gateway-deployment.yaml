@@ -119,6 +119,8 @@ spec:
             value: "http://chat-service"
           - name: Services__Message__Url
             value: "http://message-service"
+          - name: OpenTelemetry__OtlpEndpoint
+            value: "http://quickchat-otel-collector:4317"
           - name: ASPNETCORE_ENVIRONMENT
             value: "Production"
 ---
