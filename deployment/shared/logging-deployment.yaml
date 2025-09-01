@@ -1,0 +1,114 @@
+# Elastic
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: quickchat-logging
+spec:
+  version: 9.1.3
+  nodeSets:
+  - name: default
+    count: 1
+    config:
+      node.store.allow_mmap: false
+# Kibana
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: quickchat-logging
+spec:
+  version: 9.1.3
+  count: 1
+  elasticsearchRef:
+    name: quickchat-logging
+# OpenTelemetry collector
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quickchat-otel-collector-config
+data:
+  quickchat-otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+
+    exporters:
+      elasticsearch:
+        endpoints: ["https://quickchat-logging-es-http:9200"]
+        logs_index: quickchat-logs
+        traces_index: quickchat-traces
+        user: elastic
+        password: ${env:ELASTIC_PASSWORD}
+        tls:
+          ca_file: "/certs/ca.crt"
+
+    service:
+      pipelines:
+        logs:
+          receivers: [otlp]
+          exporters: [elasticsearch]
+        traces:
+          receivers: [otlp]
+          exporters: [elasticsearch]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quickchat-otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quickchat-otel-collector
+  template:
+    metadata:
+      labels:
+        app: quickchat-otel-collector
+    spec:
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector-contrib:0.83.0
+        command:
+          - "/otelcol-contrib"
+          - "--config=/conf/quickchat-otel-collector-config.yaml"
+        volumeMounts:
+          - name: config
+            mountPath: /conf
+          - name: elastic-ca
+            mountPath: /certs
+            readOnly: true
+        env:
+          - name: ELASTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: quickchat-logging-es-elastic-user
+                key: elastic
+        ports:
+          - containerPort: 4317
+      volumes:
+        - name: config
+          configMap:
+            name: quickchat-otel-collector-config
+            items:
+              - key: quickchat-otel-collector-config.yaml
+                path: quickchat-otel-collector-config.yaml
+        - name: elastic-ca
+          secret:
+            secretName: quickchat-logging-es-http-certs-public
+            items:
+              - key: ca.crt
+                path: ca.crt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quickchat-otel-collector
+spec:
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+  selector:
+    app: quickchat-otel-collector
