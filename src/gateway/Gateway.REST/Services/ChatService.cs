@@ -60,7 +60,8 @@ public class ChatService(Chat.ChatClient client, ICurrentUserProvider currentUse
         return new ChatParticipantModel(
             new Guid(message.Id),
             new Guid(message.UserId),
-            message.Name
+            message.Name,
+            message.JoinedAt.ToDateTime()
         );
     }
 }

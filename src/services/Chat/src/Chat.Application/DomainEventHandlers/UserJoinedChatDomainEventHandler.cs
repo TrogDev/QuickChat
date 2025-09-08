@@ -14,16 +14,7 @@ public class UserJoinedChatDomainEventHandler(IEventBus eventBus)
     public Task Handle(UserJoinedChatDomainEvent notification, CancellationToken cancellationToken)
     {
         UserJoinedChatIntegrationEvent integrationEvent =
-            new()
-            {
-                ChatId = notification.Chat.Id,
-                ChatParticipant = new ChatParticipant()
-                {
-                    Id = notification.ChatParticipant.Id,
-                    UserId = notification.ChatParticipant.UserId,
-                    Name = notification.ChatParticipant.Name
-                }
-            };
+            new() { ChatId = notification.Chat.Id, ChatParticipant = notification.ChatParticipant };
         eventBus.PublishAsync(integrationEvent);
         return Task.CompletedTask;
     }

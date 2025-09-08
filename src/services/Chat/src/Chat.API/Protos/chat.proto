@@ -60,4 +60,5 @@ message ChatParticipantMessage {
     string id = 1;
     string user_id = 2;
     string name = 3;
+    google.protobuf.Timestamp joined_at = 4;
 }

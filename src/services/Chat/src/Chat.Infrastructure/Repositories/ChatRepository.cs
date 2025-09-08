@@ -32,7 +32,17 @@ public class ChatRepository(ChatContext context) : IChatRepository
     {
         return await ExcludeExpired(context.Chats)
             .Include(c => c.Participants)
-            .Where(c => c.Participants.Any(p => p.UserId == userId))
+            .Select(
+                c =>
+                    new
+                    {
+                        UserInChat = c.Participants.FirstOrDefault(p => p.UserId == userId),
+                        Chat = c
+                    }
+            )
+            .Where(x => x.UserInChat != null)
+            .OrderByDescending(c => c.UserInChat.JoinedAt)
+            .Select(x => x.Chat)
             .ToListAsync();
     }
 

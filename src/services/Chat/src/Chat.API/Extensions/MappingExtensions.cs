@@ -27,7 +27,8 @@ public static class MappingExtensions
         {
             Id = chatParticipant.Id.ToString(),
             UserId = chatParticipant.UserId.ToString(),
-            Name = chatParticipant.Name
+            Name = chatParticipant.Name,
+            JoinedAt = Timestamp.FromDateTime(chatParticipant.JoinedAt)
         };
     }
 }
