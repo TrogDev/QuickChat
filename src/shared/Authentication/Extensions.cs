@@ -26,6 +26,7 @@ public static class AuthenticationExtensions
                 string identityUrl = options.Url;
                 string audience = options.Audience;
 
+                o.Authority = identityUrl;
                 o.RequireHttpsMetadata = false;
                 o.Audience = audience;
                 o.TokenValidationParameters.ValidateIssuer = false;
