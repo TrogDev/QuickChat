@@ -75,7 +75,6 @@ public static class Extensions
         string otlpEndpoint = builder.Configuration.GetValue<string>("OpenTelemetry:OtlpEndpoint")!;
         string serviceName = "Message";
 
-        builder.Logging.SetMinimumLevel(LogLevel.Debug);
         builder.Logging.AddOpenTelemetry(loggerOptions =>
         {
             loggerOptions.IncludeFormattedMessage = true;
