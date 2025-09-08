@@ -218,6 +218,8 @@ public sealed class RabbitMQEventBus(
         _ = Task.Factory.StartNew(
             async () =>
             {
+                bool isUnreachableLogged = false;
+
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     try
@@ -225,9 +227,13 @@ public sealed class RabbitMQEventBus(
                         await StartRabbitMQConnection();
                         break;
                     }
-                    catch (BrokerUnreachableException e)
+                    catch (BrokerUnreachableException)
                     {
-                        logger.LogWarning(e, "RabbitMQ is unreachable. Will attempt reconnect.");
+                        if (!isUnreachableLogged)
+                        {
+                            logger.LogWarning("RabbitMQ is unreachable. Will attempt reconnect.");
+                            isUnreachableLogged = true;
+                        }
                         await Task.Delay(TimeSpan.FromSeconds(5));
                     }
                     catch (Exception e)
