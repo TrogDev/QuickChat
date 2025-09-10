@@ -33,13 +33,13 @@ public class MessageRepository(MessageContext context) : IMessageRepository
             .Where(m => m.ChatId == chatId)
             .OrderByDescending(e => e.Id);
 
-        if (limit != null)
-        {
-            query = query.Take(limit.Value);
-        }
         if (cursor != null)
         {
             query = query.Where(e => e.Id < cursor.Value);
+        }
+        if (limit != null)
+        {
+            query = query.Take(limit.Value);
         }
 
         return await query.ToListAsync();

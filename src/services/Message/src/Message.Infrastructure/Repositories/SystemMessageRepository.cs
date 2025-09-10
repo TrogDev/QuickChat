@@ -24,13 +24,13 @@ public class SystemMessageRepository(MessageContext context) : ISystemMessageRep
             .SystemMessages.Where(m => m.ChatId == chatId)
             .OrderByDescending(e => e.Id);
 
-        if (limit != null)
-        {
-            query = query.Take(limit.Value);
-        }
         if (cursor != null)
         {
             query = query.Where(m => m.Id < cursor.Value);
+        }
+        if (limit != null)
+        {
+            query = query.Take(limit.Value);
         }
 
         return await query.ToListAsync();
