@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "QuickChat.Gateway.Services";
+
+import "google/protobuf/timestamp.proto";
+
+package MessageApi;
+
+service SystemMessage {
+    rpc GetChatSystemMessages(GetChatSystemMessagesRequest) returns (GetChatSystemMessagesReply) {}
+}
+
+message GetChatSystemMessagesRequest {
+    string chat_id = 1;
+    int32 limit = 2;
+    optional int64 cursor = 3;
+}
+
+message GetChatSystemMessagesReply {
+    repeated SystemMessageMessage messages = 1;
+}
+
+message SystemMessageMessage {
+    int64 id = 1;
+    string chat_id = 2;
+    string text = 3;
+    google.protobuf.Timestamp created_at = 4;
+}

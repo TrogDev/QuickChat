@@ -17,18 +17,18 @@ ENV PROTOBUF_PROTOC=/usr/bin/protoc
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 # Copy gateway code
-COPY src/gateway/Gateway.REST ./gateway/Gateway.REST
+COPY src/gateway/src/Gateway ./gateway/src/Gateway
 # Copy shared libraries
 COPY src/shared ./shared
-RUN dotnet restore "./gateway/Gateway.REST/Gateway.REST.csproj"
-WORKDIR "/src/gateway/Gateway.REST"
-RUN dotnet build "./Gateway.REST.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet restore "./gateway/src/Gateway/Gateway.csproj"
+WORKDIR "/src/gateway/src/Gateway"
+RUN dotnet build "./Gateway.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Gateway.REST.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Gateway.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "QuickChat.Gateway.REST.dll"]
+ENTRYPOINT ["dotnet", "QuickChat.Gateway.dll"]
