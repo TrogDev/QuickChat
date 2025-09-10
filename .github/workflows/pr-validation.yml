@@ -1,0 +1,29 @@
+name: QuickChat Pull Request Validation
+
+on:
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "deployment/**"
+      - "src/clients/**"
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "**.md"
+      - "deployment/**"
+      - "src/clients/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build
+        run: dotnet build QuickChat.sln
+      - name: Test
+        run: dotnet test QuickChat.sln
