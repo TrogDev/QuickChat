@@ -29,6 +29,7 @@ public class JwtTokenServiceTests
         IOptions<JwtOptions> options = Options.Create(
             new JwtOptions()
             {
+                BaseUrl = "https://example.com",
                 Issuer = issuer,
                 Audience = audience,
                 PrivateKey = privateKey,
@@ -38,6 +39,7 @@ public class JwtTokenServiceTests
         IOptions<JwtOptions> options2 = Options.Create(
             new JwtOptions()
             {
+                BaseUrl = "https://example.com",
                 Issuer = issuer,
                 Audience = audience,
                 PrivateKey = privateKey2,
@@ -53,7 +55,7 @@ public class JwtTokenServiceTests
     public void CreateAccessToken_WithUserId_ReturnsCorrectHeader()
     {
         // Arrange
-        Guid userId = new Guid(JwtTokenServiceTests.userId);
+        Guid userId = new(JwtTokenServiceTests.userId);
         JwtSecurityTokenHandler handler = new();
 
         // Act
@@ -69,7 +71,7 @@ public class JwtTokenServiceTests
     public void CreateAccessToken_WithUserId_ReturnsCorrectPayload()
     {
         // Arrange
-        Guid userId = new Guid(JwtTokenServiceTests.userId);
+        Guid userId = new(JwtTokenServiceTests.userId);
         JwtSecurityTokenHandler handler = new();
 
         // Act
@@ -89,8 +91,8 @@ public class JwtTokenServiceTests
     public void CreateAccessToken_WithTwoIdenticalPrivateKeys_ReturnsIdenticalKeyIds()
     {
         // Arrange
-        Guid userId = new Guid(JwtTokenServiceTests.userId);
-        Guid userId2 = new Guid(JwtTokenServiceTests.userId2);
+        Guid userId = new(JwtTokenServiceTests.userId);
+        Guid userId2 = new(JwtTokenServiceTests.userId2);
         JwtSecurityTokenHandler handler = new();
 
         // Act
@@ -107,8 +109,8 @@ public class JwtTokenServiceTests
     public void CreateAccessToken_WithTwoDifferentPrivateKeys_ReturnsDifferentKeyIds()
     {
         // Arrange
-        Guid userId = new Guid(JwtTokenServiceTests.userId);
-        Guid userId2 = new Guid(JwtTokenServiceTests.userId2);
+        Guid userId = new(JwtTokenServiceTests.userId);
+        Guid userId2 = new(JwtTokenServiceTests.userId2);
         JwtSecurityTokenHandler handler = new();
 
         // Act
