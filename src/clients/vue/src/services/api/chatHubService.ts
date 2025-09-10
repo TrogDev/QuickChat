@@ -49,7 +49,7 @@ class ChatHubService {
 
   private async startConnection() {
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(import.meta.env.VITE_API_BASE_URL + '/ws/chats')
+      .withUrl('/api/ws/chats')
       .configureLogging(signalR.LogLevel.Information)
       .build();
 

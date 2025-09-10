@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/authStore';
 import axios, { AxiosError } from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: '/api',
   timeout: 10000,
 });
 
