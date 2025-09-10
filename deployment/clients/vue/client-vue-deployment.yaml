@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-vue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-vue
+  template:
+    metadata:
+      labels:
+        app: client-vue
+    spec:
+      containers:
+      - name: client-vue
+        image: trogdev/quickchat-client-vue:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-vue
+spec:
+  type: ClusterIP
+  selector:
+    app: client-vue
+  ports:
+    - port: 80
+      targetPort: 80
