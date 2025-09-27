@@ -1,0 +1,28 @@
+name: Build and Push Chat service Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "src/services/Chat/src/**"
+      - "src/shared/**"
+      - ".github/workflows/chat-docker-image-deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./deployment/services/chat/Dockerfile
+          push: true
+          tags: trogdev/quickchat-chat-service:latest
